@@ -6,15 +6,6 @@ The biggest mistake in LLD interviews is starting with classes immediately. Inst
 
 ---
 
-# 📚 Table of Contents
-
-- [The Flow](#-the-flow)
-- [Memory Shortcut](#-memory-shortcut)
-- [1. Domain Models (D)](#1--domain-models-d)
-- [2. Repository (R)](#2--repository-r)
-
----
-
 # 🌍 The Flow
 
 ```text

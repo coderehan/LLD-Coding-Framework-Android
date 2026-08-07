@@ -430,3 +430,418 @@ The kitchen decides **what object to create**.
 👉 Object creation changes.
 
 ---
+
+---
+
+# 5. 🧠 Service Layer (S)
+
+> ## ❓ Question to ask
+>
+> **"What is the actual user action?"**
+
+The **Service** contains the **business logic**.
+
+This is where interviewers evaluate your design skills.
+
+---
+
+## ✈️ Example
+
+### User wants:
+
+```text
+Book Flight
+```
+
+---
+
+### Service handles:
+
+```text
+1. Validate flight
+
+2. Check availability
+
+3. Process payment
+
+4. Create booking
+
+5. Update status
+```
+
+---
+
+## Service Implementation
+
+```kotlin
+class FlightBookingService(
+    private val repository: FlightRepository,
+    private val paymentStrategy: PaymentStrategy
+) {
+
+    fun bookFlight(flightId: String): Booking {
+
+        val flight =
+            repository.getFlight(flightId)
+                ?: throw Exception("Flight not found")
+
+        paymentStrategy.pay(flight.price)
+
+        return Booking(
+            id = "B101",
+            passenger = Passenger(
+                "P1",
+                "User"
+            ),
+            flight = flight,
+            status = BookingStatus.CONFIRMED
+        )
+    }
+}
+```
+
+---
+
+> 💡 **Remember**
+>
+> The **Service Layer** is the **brain of your application**.
+>
+> Repositories fetch data.
+>
+> Strategies define behaviour.
+>
+> Services coordinate everything and execute the business rules.
+
+---
+
+# 6. ▶️ Main Function (M)
+
+> ## ❓ Question to ask
+>
+> **"How can I prove my design works?"**
+
+The `main()` function acts as a **small client application**.
+
+It should:
+
+- Create objects
+- Inject dependencies
+- Call service methods
+- Print output
+
+---
+
+## Example
+
+```kotlin
+fun main() {
+
+    val repository =
+        FlightRepositoryImpl()
+
+    val payment =
+        UpiPayment()
+
+    val bookingService =
+        FlightBookingService(
+            repository,
+            payment
+        )
+
+    val booking =
+        bookingService.bookFlight("F101")
+
+    println(booking)
+}
+```
+
+---
+
+## Output
+
+```text
+Paid using UPI
+
+Booking(
+ id=B101,
+ status=CONFIRMED
+)
+```
+
+---
+
+> 💡 **Remember**
+>
+> `main()` is **not** where business logic belongs.
+>
+> It simply demonstrates that your design works by wiring the objects together and invoking the service.
+
+---
+
+# 🚀 Complete LLD Interview Flow
+
+Whenever an interviewer gives you an LLD problem, follow this sequence.
+
+---
+
+## ✅ Step 1: Understand the Requirement
+
+### Example
+
+> **"Design Flight Booking System."**
+
+Ask:
+
+- What are the main use cases?
+- What operations should be supported?
+
+---
+
+## ✅ Step 2: Identify Domain Models
+
+Find the nouns.
+
+```text
+Flight
+
+Passenger
+
+Booking
+
+Payment
+
+Seat
+```
+
+Create:
+
+```text
+data class
+
+enum
+
+sealed class
+```
+
+---
+
+## ✅ Step 3: Create Repository
+
+Ask:
+
+> **"How will I access data?"**
+
+Create:
+
+```text
+Interface
+
+Implementation
+```
+
+---
+
+## ✅ Step 4: Identify Changing Behaviour
+
+Ask:
+
+> **"What will change frequently?"**
+
+Create:
+
+```text
+Strategy
+```
+
+Examples:
+
+```text
+PaymentStrategy
+
+PricingStrategy
+
+SortingStrategy
+
+SplitStrategy
+```
+
+---
+
+## ✅ Step 5: Add Factory (If Required)
+
+Ask:
+
+> **"Is object creation becoming complex?"**
+
+Create:
+
+```text
+Factory
+```
+
+---
+
+## ✅ Step 6: Create Service
+
+Put **business rules** here.
+
+Examples:
+
+```text
+BookingService
+
+PaymentService
+
+ExpenseService
+
+SearchService
+```
+
+---
+
+## ✅ Step 7: Create `main()`
+
+Demonstrate the flow.
+
+```text
+Input
+    ↓
+Service Call
+    ↓
+Output
+```
+
+---
+
+# 📌 Interview Coding Checklist
+
+Before you stop coding, quickly verify:
+
+- ✅ Domain models created
+- ✅ Repository interface + implementation
+- ✅ Strategy used where behaviour changes
+- ✅ Factory added only if needed
+- ✅ Business logic inside Service
+- ✅ `main()` demonstrates the complete flow
+- ✅ Code is clean and readable
+
+---
+
+## 📖 Summary So Far
+
+| Step | Ask Yourself |
+|------|--------------|
+| 🧩 Domain | What things exist? |
+| 🗂 Repository | Where does data come from? |
+| 🎯 Strategy | What behaviour changes? |
+| 🏭 Factory | Who creates objects? |
+| 🧠 Service | What action does the user perform? |
+| ▶️ Main | How do I prove my design works? |
+
+---
+
+# ⚠️ Important Interview Reminder
+
+❌ Do **NOT** spend time implementing:
+
+- Real APIs
+- Database
+- Retrofit
+- Networking
+- UI
+- Authentication
+
+---
+
+## ✅ Focus On
+
+- Clean object design
+- SOLID principles
+- Separation of responsibility
+- Extensibility
+- Business logic
+
+---
+
+> 💡 **Remember**
+>
+> The interviewer is evaluating your **design thinking**, not production infrastructure.
+
+---
+
+# 📝 Quick Interview Checklist
+
+Before ending the interview, verify:
+
+- ✅ Requirements are understood
+- ✅ Domain models are created
+- ✅ Repository is separated
+- ✅ Strategy is used where behaviour varies
+- ✅ Factory is added only if required
+- ✅ Service contains business logic
+- ✅ `main()` demonstrates the complete flow
+- ✅ Code is clean and readable
+
+---
+
+# 🧠 Final Memory Trick
+
+Whenever you see an LLD problem, simply ask yourself:
+
+```text
+What things exist?
+        ↓
+DOMAIN
+
+Where does data come from?
+        ↓
+REPOSITORY
+
+What behaviour changes?
+        ↓
+STRATEGY
+
+Who creates objects?
+        ↓
+FACTORY
+
+What action does user perform?
+        ↓
+SERVICE
+
+How do I prove it works?
+        ↓
+MAIN
+```
+
+---
+
+# 🎯 One-Line Summary
+
+```text
+Story
+   ↓
+Domain
+   ↓
+Repository
+   ↓
+Strategy
+   ↓
+Factory (if required)
+   ↓
+Service
+   ↓
+Main()
+```
+
+---
+
+# 🚀 Conclusion
+
+Master this flow and you can approach most **Low-Level Design (LLD)** coding interviews confidently.
+
+Instead of memorizing solutions, learn to think systematically.
+
+Every LLD problem is simply another real-world story waiting to be converted into clean, extensible code.
+
+Happy Coding! 🚀

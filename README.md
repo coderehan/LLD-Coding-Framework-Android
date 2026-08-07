@@ -190,3 +190,243 @@ class FlightRepositoryImpl : FlightRepository {
 > Repository should **NOT** contain business rules.
 
 ---
+
+---
+
+# 3. 🎯 Strategy Pattern (S)
+
+> ## ❓ Question to ask
+>
+> **"What behaviour can change in the future?"**
+
+Whenever you see:
+
+- Multiple ways of doing something
+- Future extensions
+- Different algorithms/rules
+
+👉 Use **Strategy Pattern**.
+
+---
+
+## 💳 Example: Payment
+
+### Today
+
+```text
+UPI Payment
+```
+
+### Tomorrow
+
+```text
+Card Payment
+Wallet Payment
+Apple Pay
+```
+
+Instead of putting all the logic inside one class, create a strategy.
+
+---
+
+## Strategy Interface
+
+```kotlin
+interface PaymentStrategy {
+
+    fun pay(amount: Double)
+}
+```
+
+---
+
+## Strategy Implementations
+
+### UPI Payment
+
+```kotlin
+class UpiPayment : PaymentStrategy {
+
+    override fun pay(amount: Double) {
+        println("Paid using UPI")
+    }
+}
+```
+
+### Card Payment
+
+```kotlin
+class CardPayment : PaymentStrategy {
+
+    override fun pay(amount: Double) {
+        println("Paid using Card")
+    }
+}
+```
+
+---
+
+## ✅ Benefit
+
+Now adding a new payment method **does not affect existing code**.
+
+For example, tomorrow you can simply add:
+
+- WalletPayment
+- ApplePayPayment
+- GooglePayPayment
+
+without modifying existing implementations.
+
+---
+
+# 4. 🏭 Factory Pattern (F)
+
+> ## ❓ Question to ask
+>
+> **"Who is responsible for creating objects?"**
+
+Factory is useful when **object creation logic becomes complex**.
+
+---
+
+## Example
+
+Suppose the user selects:
+
+```text
+UPI
+CARD
+WALLET
+```
+
+Instead of writing lots of `if-else` or `when` statements throughout the codebase, let the **Factory** create the correct object.
+
+---
+
+## Payment Type
+
+```kotlin
+enum class PaymentType {
+    UPI,
+    CARD
+}
+```
+
+---
+
+## Factory Implementation
+
+```kotlin
+class PaymentFactory {
+
+    fun create(type: PaymentType): PaymentStrategy {
+
+        return when(type) {
+
+            PaymentType.UPI ->
+                UpiPayment()
+
+            PaymentType.CARD ->
+                CardPayment()
+        }
+    }
+}
+```
+
+---
+
+# ⚖️ Strategy vs Factory
+
+This is one of the most common interview discussions.
+
+| Strategy 🧠 | Factory 🏭 |
+|-------------|------------|
+| **How should something be done?** | **Which object should I create?** |
+| Focuses on **behaviour** | Focuses on **object creation** |
+| Multiple algorithms | Multiple object types |
+| Selected during execution | Creates the required implementation |
+
+---
+
+## 🎯 Strategy
+
+### Answers
+
+> **"How should something be done?"**
+
+### Examples
+
+```text
+Payment calculation
+
+Pricing calculation
+
+Sorting
+
+Notification
+```
+
+---
+
+## 🏭 Factory
+
+### Answers
+
+> **"Which object should I create?"**
+
+### Examples
+
+```text
+Create UPI payment object
+
+Create Card payment object
+
+Create Parser object
+```
+
+---
+
+## 🧠 Easy Way to Remember
+
+Imagine you're ordering food.
+
+### 🍕 Strategy
+
+The food is already prepared.
+
+Now you choose **how** to pay.
+
+```text
+Cash
+
+Card
+
+UPI
+
+Wallet
+```
+
+👉 Behaviour changes.
+
+---
+
+### 🏭 Factory
+
+You haven't received anything yet.
+
+Someone has to prepare the correct food.
+
+```text
+Veg Pizza
+
+Chicken Pizza
+
+Paneer Pizza
+```
+
+The kitchen decides **what object to create**.
+
+👉 Object creation changes.
+
+---

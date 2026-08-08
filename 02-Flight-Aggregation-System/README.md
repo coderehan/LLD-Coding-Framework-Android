@@ -1,6 +1,6 @@
 # ✈️ LLD TOPIC: FLIGHT AGGREGATION SYSTEM
 
-### *(like Skyscanner / Google Flights)*
+### *(Skyscanner, Google Flights, Kayak, Momondo, Expedia, Wego, Cleartrip, MakeMyTrip, ixigo, EaseMyTrip)*
 
 ---
 

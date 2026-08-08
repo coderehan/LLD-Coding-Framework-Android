@@ -1,6 +1,6 @@
 # 📝 LLD TOPIC: RESERVATION WITH AUXILIARY COMMENTS
 
-### *(Navan-style twist)*
+### *(Navan, Amex GBT, SAP Concur, TravelPerk, Booking.com, Expedia, Airbnb, TripActions)*
 
 ---
 

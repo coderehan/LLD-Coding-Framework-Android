@@ -1,6 +1,6 @@
 # 🏨 LLD TOPIC: HOTEL BOOKING SYSTEM
 
-### *()*
+### *(Hotel reservations - Booking.com, Agoda, Expedia, Airbnb, OYO, MakeMyTrip, Goibibo, Trivago, Hotels.com, Marriott, Hilton, Taj, Hotels)*
 
 ---
 

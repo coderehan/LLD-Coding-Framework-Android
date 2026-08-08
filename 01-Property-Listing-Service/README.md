@@ -1,6 +1,6 @@
 # 🏠 LLD TOPIC: PROPERTY LISTING SERVICE
 
-### *(like Airbnb listings)*
+### *(like Airbnb, Vrbo, Booking.com, Agoda, Expedia, MakeMyTrip, OYO, Zillow, Realtor.com, Redfin)*
 
 ---
 

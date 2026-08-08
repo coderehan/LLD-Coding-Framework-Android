@@ -1,22 +1,29 @@
-# 💰 LLD TOPIC: EXPENSE MANAGEMENT SYSTEM
+# 📝 LLD TOPIC: RESERVATION WITH AUXILIARY COMMENTS
 
-### *(like Splitwise)*
+### *(Navan-style twist)*
 
 ---
 
-> **This is the MOST commonly asked LLD topic** because it has a very clean Strategy pattern use case: **SPLITTING** an expense can be done in different ways (**equal / percentage / exact**).
+## 🎯 Overview
+
+This is a variant of a booking system: instead of designing the whole booking flow again, the ask is **"extend a Reservation so it can carry comments/notes"** — e.g. an agent note like:
+
+* `"guest requested late checkout"`
+* `"visa docs pending"`
+
+> Same **5-step skeleton** as always. The new piece is the **Comment entity** + how it attaches to a **Reservation**.
 
 ---
 
 ## 🧩 FRAMEWORK
 
-| Step  | Component            | Purpose                              |
-| ----- | -------------------- | ------------------------------------ |
-| **1** | Enums + Data classes | The data/domain objects              |
-| **2** | Repository           | Stores expenses                      |
-| **3** | Strategy interface   | How an expense is split              |
-| **4** | Service class        | Business logic + balance calculation |
-| **5** | `main()`             | Proves everything works              |
+| Step  | Component            | Purpose                                   |
+| ----- | -------------------- | ----------------------------------------- |
+| **1** | Enums + Data classes | Model reservations, users, and comments   |
+| **2** | Repository           | Store and fetch reservations              |
+| **3** | Strategy interface   | Who gets notified when a comment is added |
+| **4** | Service class        | Comment business logic + visibility       |
+| **5** | `main()`             | Proves everything works                   |
 
 ---
 
@@ -25,10 +32,17 @@
 ```kotlin
 import java.util.UUID
 
-enum class SplitType {
-    EQUAL,
-    PERCENTAGE,
-    EXACT
+enum class ReservationStatus {
+    PENDING,
+    CONFIRMED,
+    CANCELLED
+}
+
+// Who is allowed to see a comment - a common real-world requirement:
+// internal ops notes vs comments visible to the traveler/customer.
+enum class CommentVisibility {
+    INTERNAL,
+    CUSTOMER_VISIBLE
 }
 
 data class User(
@@ -36,18 +50,24 @@ data class User(
     val name: String
 )
 
-// How much ONE user owes for a particular expense
-data class Split(
-    val user: User,
-    val amount: Double
+// A single comment/note attached to a reservation.
+data class Comment(
+    val id: String,
+    val author: User,
+    val text: String,
+    val visibility: CommentVisibility,
+    val createdAt: Long = System.currentTimeMillis()
 )
 
-data class Expense(
+// The Reservation now HAS a list of comments (composition).
+// 'comments' is a MutableList because comments get added over time,
+// but the list reference itself is never reassigned.
+data class Reservation(
     val id: String,
-    val description: String,
-    val amount: Double,
-    val paidBy: User,
-    val splits: List<Split> // who owes how much for this expense
+    val guestName: String,
+    val details: String, // e.g. "Flight BLR->DEL, 12 Aug" - kept generic on purpose
+    var status: ReservationStatus = ReservationStatus.PENDING,
+    val comments: MutableList<Comment> = mutableListOf()
 )
 ```
 
@@ -55,31 +75,41 @@ data class Expense(
 
 # 2️⃣ REPOSITORY
 
-> Stores expenses and keeps a running balance sheet between users.
+> Only **ONE repository** needed — comments live inside the `Reservation` object, so we don't need a separate `CommentRepository`.
 
-### Expense Repository
+> Keep it simple unless the interviewer specifically asks for comments to be queried independently.
+
+### Reservation Repository
 
 ```kotlin
-interface ExpenseRepository {
+interface ReservationRepository {
 
-    fun addExpense(expense: Expense)
+    fun save(reservation: Reservation)
 
-    fun getAllExpenses(): List<Expense>
+    fun getById(id: String): Reservation?
 }
 ```
 
-### In-Memory Repository
+### In-Memory Reservation Repository
 
 ```kotlin
-class InMemoryExpenseRepository : ExpenseRepository {
+class InMemoryReservationRepository : ReservationRepository {
 
-    private val expenses = mutableListOf<Expense>()
+    private val reservations = mutableListOf<Reservation>()
 
-    override fun addExpense(expense: Expense) {
-        expenses.add(expense)
+    override fun save(reservation: Reservation) {
+
+        reservations.removeAll {
+            it.id == reservation.id
+        }
+
+        reservations.add(reservation)
     }
 
-    override fun getAllExpenses(): List<Expense> = expenses
+    override fun getById(id: String) =
+        reservations.find {
+            it.id == id
+        }
 }
 ```
 
@@ -87,98 +117,70 @@ class InMemoryExpenseRepository : ExpenseRepository {
 
 # 3️⃣ STRATEGY INTERFACE
 
-> The thing that varies here = **HOW an expense is split between users.**
+> The thing that varies here = **WHO gets notified when a new comment is added.**
 
-This is the textbook example of the **Strategy pattern**.
+For example:
 
-### 🔌 Split Strategy
+* Notify just the ops team
+* Notify the customer too
+
+### 🔔 Comment Notification Strategy
 
 ```kotlin
-interface SplitStrategy {
+interface CommentNotificationStrategy {
 
-    // participants = everyone involved in this expense (excluding logic of who paid)
-    fun split(
-        totalAmount: Double,
-        participants: List<User>,
-        extraData: Map<String, Double> = emptyMap()
-    ): List<Split>
+    fun notify(
+        reservation: Reservation,
+        comment: Comment
+    )
 }
 ```
 
 ---
 
-## ⚖️ Equal Split Strategy
+## 🏢 Internal-Only Notification Strategy
 
-> Split equally among everyone
+> Only notify internal ops — used for `INTERNAL` comments.
 
 ```kotlin
-class EqualSplitStrategy : SplitStrategy {
+class InternalOnlyNotificationStrategy : CommentNotificationStrategy {
 
-    override fun split(
-        totalAmount: Double,
-        participants: List<User>,
-        extraData: Map<String, Double>
-    ): List<Split> {
+    override fun notify(
+        reservation: Reservation,
+        comment: Comment
+    ) {
 
-        val share = totalAmount / participants.size
-
-        return participants.map {
-            Split(it, share)
-        }
+        println(
+            "[Internal Alert] New note on reservation " +
+            "${reservation.id}: \"${comment.text}\""
+        )
     }
 }
 ```
 
 ---
 
-## 📊 Percentage Split Strategy
+## 👤 Customer Notification Strategy
 
-> Split by percentage, e.g. `{"user1": 50.0, "user2": 50.0}`
-
-```kotlin
-class PercentageSplitStrategy : SplitStrategy {
-
-    override fun split(
-        totalAmount: Double,
-        participants: List<User>,
-        extraData: Map<String, Double>
-    ): List<Split> {
-
-        return participants.map { user ->
-
-            val percent = extraData[user.id] ?: 0.0
-
-            Split(
-                user,
-                totalAmount * (percent / 100)
-            )
-        }
-    }
-}
-```
-
----
-
-## 💵 Exact Split Strategy
-
-> Split by exact amounts, e.g. `{"user1": 300.0, "user2": 200.0}`
+> Notify the customer as well — used for `CUSTOMER_VISIBLE` comments.
 
 ```kotlin
-class ExactSplitStrategy : SplitStrategy {
+class CustomerNotificationStrategy : CommentNotificationStrategy {
 
-    override fun split(
-        totalAmount: Double,
-        participants: List<User>,
-        extraData: Map<String, Double>
-    ): List<Split> {
+    override fun notify(
+        reservation: Reservation,
+        comment: Comment
+    ) {
 
-        return participants.map { user ->
+        println(
+            "[Internal Alert] New note on reservation " +
+            "${reservation.id}: \"${comment.text}\""
+        )
 
-            Split(
-                user,
-                extraData[user.id] ?: 0.0
-            )
-        }
+        println(
+            "[Email to ${reservation.guestName}] " +
+            "Update on your reservation: \"${comment.text}\""
+        )
     }
 }
 ```
@@ -187,61 +189,85 @@ class ExactSplitStrategy : SplitStrategy {
 
 # 4️⃣ SERVICE CLASS
 
+> This is where the actual **"add comment" business logic** lives.
+
 ```kotlin
-class ExpenseService(
-    private val repository: ExpenseRepository
+class ReservationService(
+    private val repository: ReservationRepository
 ) {
 
-    // Add a new expense using whichever split strategy is passed in
-    fun addExpense(
-        description: String,
-        amount: Double,
-        paidBy: User,
-        participants: List<User>,
-        strategy: SplitStrategy,
-        extraData: Map<String, Double> = emptyMap()
-    ): Expense {
+    fun createReservation(
+        guestName: String,
+        details: String
+    ): Reservation {
 
-        val splits = strategy.split(
-            amount,
-            participants,
-            extraData
-        )
-
-        val expense = Expense(
+        val reservation = Reservation(
             id = UUID.randomUUID().toString(),
-            description = description,
-            amount = amount,
-            paidBy = paidBy,
-            splits = splits
+            guestName = guestName,
+            details = details
         )
 
-        repository.addExpense(expense)
+        repository.save(reservation)
 
-        return expense
+        return reservation
     }
 
-    // Calculate net balance: who owes whom, in simple form (per user, how much they owe overall)
-    fun getBalances(): Map<String, Double> {
+    // Adds a comment to a reservation and notifies the right audience
+    // by picking a notification strategy based on the comment's visibility.
+    fun addComment(
+        reservationId: String,
+        author: User,
+        text: String,
+        visibility: CommentVisibility
+    ): Comment {
 
-        val balances = mutableMapOf<String, Double>()
-        // userId -> net amount (+ve = should receive, -ve = owes)
+        val reservation = repository.getById(reservationId)
+            ?: throw NoSuchElementException("Reservation not found")
 
-        for (expense in repository.getAllExpenses()) {
+        val comment = Comment(
+            id = UUID.randomUUID().toString(),
+            author = author,
+            text = text,
+            visibility = visibility
+        )
 
-            // person who paid gets credited the full amount
-            balances[expense.paidBy.id] =
-                (balances[expense.paidBy.id] ?: 0.0) + expense.amount
+        reservation.comments.add(comment)
 
-            // each participant in the split gets debited their share
-            for (split in expense.splits) {
+        repository.save(reservation) // persist the updated reservation
 
-                balances[split.user.id] =
-                    (balances[split.user.id] ?: 0.0) - split.amount
+        // Pick the right strategy based on visibility - this is our Strategy pattern in action
+        val strategy: CommentNotificationStrategy =
+            if (visibility == CommentVisibility.CUSTOMER_VISIBLE) {
+                CustomerNotificationStrategy()
+            } else {
+                InternalOnlyNotificationStrategy()
+            }
+
+        strategy.notify(reservation, comment)
+
+        return comment
+    }
+
+    // Fetch comments a given viewer is allowed to see.
+    // e.g. a customer-facing app should only ever call this with isInternalViewer = false.
+    fun getVisibleComments(
+        reservationId: String,
+        isInternalViewer: Boolean
+    ): List<Comment> {
+
+        val reservation = repository.getById(reservationId)
+            ?: throw NoSuchElementException("Reservation not found")
+
+        return if (isInternalViewer) {
+
+            reservation.comments // internal viewers (ops/agents) see everything
+
+        } else {
+
+            reservation.comments.filter {
+                it.visibility == CommentVisibility.CUSTOMER_VISIBLE
             }
         }
-
-        return balances
     }
 }
 ```
@@ -255,44 +281,69 @@ class ExpenseService(
 ```kotlin
 fun main() {
 
-    val repo = InMemoryExpenseRepository()
-    val service = ExpenseService(repo)
+    val repo = InMemoryReservationRepository()
+    val service = ReservationService(repo)
 
-    val alice = User("U1", "Alice")
-    val bob = User("U2", "Bob")
-    val carol = User("U3", "Carol")
-
-    // Example 1: Equal split - dinner for 3 people, Alice paid ₹900
-    service.addExpense(
-        description = "Dinner",
-        amount = 900.0,
-        paidBy = alice,
-        participants = listOf(alice, bob, carol),
-        strategy = EqualSplitStrategy()
+    val agent = User(
+        "A1",
+        "Support Agent"
     )
 
-    // Example 2: Exact split - Bob paid ₹500 for movie tickets, split unevenly
-    service.addExpense(
-        description = "Movie tickets",
-        amount = 500.0,
-        paidBy = bob,
-        participants = listOf(alice, carol),
-        strategy = ExactSplitStrategy(),
-        extraData = mapOf(
-            "U1" to 300.0,
-            "U3" to 200.0
+    val reservation = service.createReservation(
+        "Rehan",
+        "Flight BLR -> DEL, 12 Aug"
+    )
+
+    // Internal-only note - only ops should see this
+    service.addComment(
+        reservationId = reservation.id,
+        author = agent,
+        text = "Guest requested wheelchair assistance - confirm with airline",
+        visibility = CommentVisibility.INTERNAL
+    )
+
+    // Customer-visible note - guest should be notified too
+    service.addComment(
+        reservationId = reservation.id,
+        author = agent,
+        text = "Your seat has been upgraded to window seat 14A",
+        visibility = CommentVisibility.CUSTOMER_VISIBLE
+    )
+
+    println("\n--- What the CUSTOMER sees ---")
+
+    service.getVisibleComments(
+        reservation.id,
+        isInternalViewer = false
+    ).forEach {
+        println(" - ${it.text}")
+    }
+
+    println("\n--- What INTERNAL OPS sees (everything) ---")
+
+    service.getVisibleComments(
+        reservation.id,
+        isInternalViewer = true
+    ).forEach {
+        println(
+            " - [${it.visibility}] ${it.text}"
         )
-    )
-
-    println(
-        "Final balances " +
-        "(positive = should receive money, negative = owes money):"
-    )
-
-    service.getBalances()
-        .forEach { (userId, balance) ->
-            println(" - $userId: ₹$balance")
-        }
+    }
 }
 ```
 
+---
+
+## 🧠 Interview Focus
+
+> 📝 **Comment as a separate entity** → keeps the reservation model clean while allowing multiple comments.
+
+> 🔗 **Composition** → `Reservation` HAS a list of `Comment` objects.
+
+> 🔔 **Notification Strategy** → notification behavior can vary based on comment visibility.
+
+> 👁️ **Visibility** → internal users see everything, while customers only see `CUSTOMER_VISIBLE` comments.
+
+> 🗄️ **Single Repository** → comments live inside the reservation, so a separate `CommentRepository` is unnecessary unless independent querying is required.
+
+> 🧩 **Service Class** → coordinates comment creation, persistence, notification, and visibility.

@@ -1,6 +1,6 @@
 # ✈️ LLD TOPIC: TRAVEL ITINERARY MANAGEMENT
 
-### *()*
+### *(Navan, TripIt, Wanderlog, Google Travel, Expedia, Booking.com, MakeMyTrip, Tripadvisor, Airbnb)*
 
 ---
 

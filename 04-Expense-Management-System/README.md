@@ -1,6 +1,6 @@
 # 💰 LLD TOPIC: EXPENSE MANAGEMENT SYSTEM
 
-### *(like Splitwise)*
+### *(Splitwise, Tricount, Settle Up, Splitser, Venmo, PayPal, Revolut)*
 
 ---
 

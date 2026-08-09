@@ -1,12 +1,41 @@
-# 🚀 LLD Coding Interview Framework (DRSFSM)
+# 🚀 LLD Coding Interview Framework — DRSFSM
 
 > A simple framework to approach **Low-Level Design (LLD) coding rounds**.
 
-The biggest mistake in LLD interviews is starting with classes immediately. Instead, start with a **real-world story** and convert that story into code.
+The biggest mistake in LLD interviews is starting with classes immediately.
+
+Instead, start with a **real-world story** and convert that story into code.
+
+The goal of this framework is not to memorize solutions.
+
+The goal is to have a **repeatable way of thinking** whenever an interviewer gives you a new LLD problem.
+
+---
+
+# 📚 Table of Contents
+
+* [The Flow](#-the-flow)
+* [Memory Shortcut](#-memory-shortcut)
+* [How the Files Communicate](#-how-the-files-communicate)
+* [1. Domain Models](#1--domain-models-d)
+* [2. Repository](#2--repository-r)
+* [3. Strategy Pattern](#3--strategy-pattern-s)
+* [4. Factory Pattern](#4--factory-pattern-f)
+* [Strategy vs Factory](#-strategy-vs-factory)
+* [5. Service Layer](#5--service-layer-s)
+* [6. Main Function](#6--main-function-m)
+* [Complete LLD Interview Flow](#-complete-lld-interview-flow)
+* [Examples](#-examples-where-this-framework-applies)
+* [Important Interview Reminder](#️-important-interview-reminder)
+* [Final Memory Trick](#-final-memory-trick)
 
 ---
 
 # 🌍 The Flow
+
+Whenever you get an LLD problem, don't immediately start creating classes.
+
+Start with the real-world story.
 
 ```text
 Real World Problem
@@ -34,14 +63,307 @@ Demonstrate using main()
 
 # 🧠 Memory Shortcut
 
-| Letter | Meaning |
-|---------|---------|
-| **D** | Domain Models |
-| **R** | Repository |
-| **S** | Strategy |
-| **F** | Factory |
-| **S** | Service |
-| **M** | Main |
+| Letter | Meaning       | Simple Question                    |
+| ------ | ------------- | ---------------------------------- |
+| **D**  | Domain Models | What things exist?                 |
+| **R**  | Repository    | Where does data come from?         |
+| **S**  | Strategy      | What behaviour changes?            |
+| **F**  | Factory       | Who creates objects?               |
+| **S**  | Service       | What action does the user perform? |
+| **M**  | Main          | How do I prove it works?           |
+
+### DRSFSM
+
+```text
+D → Domain Models
+R → Repository
+S → Strategy
+F → Factory
+S → Service
+M → Main
+```
+
+---
+
+# 🔄 How the Files Communicate
+
+Understanding **who communicates with whom** is one of the most important parts of LLD.
+
+For a typical LLD project:
+
+```text
+                         ┌─────────────┐
+                         │   Main.kt   │
+                         └──────┬──────┘
+                                │
+                                │ calls
+                                ▼
+                    ┌──────────────────────┐
+                    │       Service        │
+                    │ FlightBookingService │
+                    └───────┬───────┬──────┘
+                            │       │
+                  uses      │       │ uses
+                            ▼       ▼
+                 ┌──────────────┐  ┌──────────────────┐
+                 │  Repository  │  │    Strategy      │
+                 │  Interface   │  │    Interface     │
+                 └──────┬───────┘  └────────┬─────────┘
+                        │                   │
+                        │ implemented by    │ implemented by
+                        ▼                   ▼
+              ┌──────────────────┐   ┌────────────────┐
+              │ RepositoryImpl   │   │  UpiPayment    │
+              └────────┬─────────┘   │ CardPayment    │
+                       │             └────────────────┘
+                       │
+                       │ works with
+                       ▼
+                 ┌─────────────┐
+                 │   Domain    │
+                 │   Models    │
+                 │             │
+                 │ Flight      │
+                 │ Passenger   │
+                 │ Booking     │
+                 └─────────────┘
+
+              ┌─────────────────────┐
+              │       Factory       │
+              │   PaymentFactory    │
+              └──────────┬──────────┘
+                         │
+                         │ creates
+                         ▼
+                  PaymentStrategy
+```
+
+---
+
+## 🧩 Simple Explanation
+
+### 1. `Main.kt` → `Service`
+
+```text
+Main
+  ↓
+Service
+```
+
+`Main.kt` is the entry point.
+
+It creates the required objects, injects dependencies, and calls the user's action.
+
+```kotlin
+val service = FlightBookingService(
+    repository,
+    paymentStrategy
+)
+
+service.bookFlight("F101")
+```
+
+**Simple meaning:**
+
+> Main says: **"I want to book a flight."**
+
+---
+
+### 2. `Service` → `Repository`
+
+```text
+Service
+   ↓
+Repository
+```
+
+The Service needs data, so it asks the Repository.
+
+```kotlin
+val flight = repository.getFlight(flightId)
+```
+
+**Simple meaning:**
+
+> Service says: **"Give me the flight details."**
+
+The Service does not care whether the data comes from an API, database, cache, or fake data.
+
+---
+
+### 3. `Service` → `Strategy`
+
+```text
+Service
+   ↓
+Strategy
+```
+
+The Service needs some behaviour to be performed.
+
+```kotlin
+paymentStrategy.pay(flight.price)
+```
+
+**Simple meaning:**
+
+> Service says: **"Perform the payment using the selected payment method."**
+
+The Service doesn't need to know whether it is UPI, Card, Wallet, etc.
+
+---
+
+### 4. `RepositoryImpl` → `Repository`
+
+```text
+Repository Interface
+        ▲
+        │ implements
+        │
+RepositoryImpl
+```
+
+The Repository defines **what operations are available**.
+
+The Repository Implementation defines **how those operations are performed**.
+
+```kotlin
+interface FlightRepository {
+    fun getFlight(id: String): Flight?
+}
+```
+
+```kotlin
+class FlightRepositoryImpl : FlightRepository {
+
+    override fun getFlight(id: String): Flight? {
+        // Fake/static data
+    }
+}
+```
+
+**Simple meaning:**
+
+> Interface says **"what can be done."**
+> Implementation says **"how it is done."**
+
+---
+
+### 5. Strategy Implementations → Strategy
+
+```text
+             PaymentStrategy
+              ▲          ▲
+              │          │
+              │          │
+        UpiPayment   CardPayment
+```
+
+All payment implementations follow the same contract.
+
+```kotlin
+interface PaymentStrategy {
+    fun pay(amount: Double)
+}
+```
+
+```kotlin
+class UpiPayment : PaymentStrategy
+```
+
+```kotlin
+class CardPayment : PaymentStrategy
+```
+
+**Simple meaning:**
+
+> Strategy defines **the common behaviour**, while each implementation defines **its own way of performing it**.
+
+---
+
+### 6. `Factory` → Creates Strategy Objects
+
+```text
+PaymentFactory
+      │
+      │ creates
+      ▼
+PaymentStrategy
+      │
+      ├── UpiPayment
+      └── CardPayment
+```
+
+The Factory's job is **object creation**.
+
+```kotlin
+val payment = factory.create(PaymentType.UPI)
+```
+
+**Simple meaning:**
+
+> Factory says: **"You asked for UPI, so I'll create the UPI payment object."**
+
+---
+
+### 7. Service → Domain Models
+
+```text
+Service
+   ↓
+Domain Models
+```
+
+The Service uses domain objects to perform business operations.
+
+```kotlin
+Booking(
+    id = "B101",
+    passenger = passenger,
+    flight = flight,
+    status = BookingStatus.CONFIRMED
+)
+```
+
+**Simple meaning:**
+
+> Domain Models represent the **real-world things** in the system.
+
+---
+
+# 🧠 Simplest Communication Flow
+
+If the complete diagram feels too much, remember only this:
+
+```text
+                 MAIN
+                  │
+                  │ calls
+                  ▼
+               SERVICE
+              /       \
+             /         \
+            ▼           ▼
+      REPOSITORY      STRATEGY
+          │               │
+          ▼               ▼
+     REPOSITORY       UPI / CARD
+       IMPL
+          │
+          ▼
+       DOMAIN
+       MODELS
+
+       FACTORY
+          │
+          │ creates
+          ▼
+       STRATEGY
+```
+
+### In one sentence:
+
+> **Main calls the Service → Service uses Repository for data and Strategy for changing behaviour → Repository works with Domain Models → Factory creates the required Strategy object.**
 
 ---
 
@@ -55,9 +377,9 @@ Look for **nouns**.
 
 Nouns usually become:
 
-- 📦 Data classes
-- 🚦 Enums
-- 🔐 Sealed classes *(when different states contain different data)*
+* 📦 Data classes
+* 🚦 Enums
+* 🔐 Sealed classes *(when different states contain different data)*
 
 ---
 
@@ -125,8 +447,6 @@ Cache
 File Storage
 ```
 
----
-
 ## 💻 In an interview
 
 Use an **interface + fake implementation**.
@@ -145,8 +465,6 @@ interface FlightRepository {
     fun getFlight(id: String): Flight?
 }
 ```
-
----
 
 ### Repository Implementation
 
@@ -169,18 +487,14 @@ class FlightRepositoryImpl : FlightRepository {
 
 ## ✅ Repository Responsibilities
 
-- Fetch data
-- Save data
-- Update data
-- Delete data
-
----
+* Fetch data
+* Save data
+* Update data
+* Delete data
 
 > 💡 **Remember**
 >
 > Repository should **NOT** contain business rules.
-
----
 
 ---
 
@@ -192,9 +506,9 @@ class FlightRepositoryImpl : FlightRepository {
 
 Whenever you see:
 
-- Multiple ways of doing something
-- Future extensions
-- Different algorithms/rules
+* Multiple ways of doing something
+* Future extensions
+* Different algorithms/rules
 
 👉 Use **Strategy Pattern**.
 
@@ -263,9 +577,9 @@ Now adding a new payment method **does not affect existing code**.
 
 For example, tomorrow you can simply add:
 
-- WalletPayment
-- ApplePayPayment
-- GooglePayPayment
+* WalletPayment
+* ApplePayPayment
+* GooglePayPayment
 
 without modifying existing implementations.
 
@@ -291,7 +605,7 @@ CARD
 WALLET
 ```
 
-Instead of writing lots of `if-else` or `when` statements throughout the codebase, let the **Factory** create the correct object.
+Instead of writing lots of `if-else` or `when` statements throughout the codebase, let the Factory create the correct object.
 
 ---
 
@@ -331,12 +645,12 @@ class PaymentFactory {
 
 This is one of the most common interview discussions.
 
-| Strategy 🧠 | Factory 🏭 |
-|-------------|------------|
-| **How should something be done?** | **Which object should I create?** |
-| Focuses on **behaviour** | Focuses on **object creation** |
-| Multiple algorithms | Multiple object types |
-| Selected during execution | Creates the required implementation |
+| Strategy 🧠                       | Factory 🏭                          |
+| --------------------------------- | ----------------------------------- |
+| **How should something be done?** | **Which object should I create?**   |
+| Focuses on behaviour              | Focuses on object creation          |
+| Multiple algorithms               | Multiple object types               |
+| Selected during execution         | Creates the required implementation |
 
 ---
 
@@ -350,11 +664,8 @@ This is one of the most common interview discussions.
 
 ```text
 Payment calculation
-
 Pricing calculation
-
 Sorting
-
 Notification
 ```
 
@@ -370,9 +681,7 @@ Notification
 
 ```text
 Create UPI payment object
-
 Create Card payment object
-
 Create Parser object
 ```
 
@@ -386,15 +695,12 @@ Imagine you're ordering food.
 
 The food is already prepared.
 
-Now you choose **how** to pay.
+Now you choose **how to pay**.
 
 ```text
 Cash
-
 Card
-
 UPI
-
 Wallet
 ```
 
@@ -410,17 +716,13 @@ Someone has to prepare the correct food.
 
 ```text
 Veg Pizza
-
 Chicken Pizza
-
 Paneer Pizza
 ```
 
 The kitchen decides **what object to create**.
 
 👉 Object creation changes.
-
----
 
 ---
 
@@ -444,19 +746,13 @@ This is where interviewers evaluate your design skills.
 Book Flight
 ```
 
----
-
 ### Service handles:
 
 ```text
 1. Validate flight
-
 2. Check availability
-
 3. Process payment
-
 4. Create booking
-
 5. Update status
 ```
 
@@ -491,8 +787,6 @@ class FlightBookingService(
 }
 ```
 
----
-
 > 💡 **Remember**
 >
 > The **Service Layer** is the **brain of your application**.
@@ -515,10 +809,10 @@ The `main()` function acts as a **small client application**.
 
 It should:
 
-- Create objects
-- Inject dependencies
-- Call service methods
-- Print output
+* Create objects
+* Inject dependencies
+* Call service methods
+* Print output
 
 ---
 
@@ -559,8 +853,6 @@ Booking(
 )
 ```
 
----
-
 > 💡 **Remember**
 >
 > `main()` is **not** where business logic belongs.
@@ -583,8 +875,8 @@ Whenever an interviewer gives you an LLD problem, follow this sequence.
 
 Ask:
 
-- What are the main use cases?
-- What operations should be supported?
+* What are the main use cases?
+* What operations should be supported?
 
 ---
 
@@ -594,13 +886,9 @@ Find the nouns.
 
 ```text
 Flight
-
 Passenger
-
 Booking
-
 Payment
-
 Seat
 ```
 
@@ -608,9 +896,7 @@ Create:
 
 ```text
 data class
-
 enum
-
 sealed class
 ```
 
@@ -626,7 +912,6 @@ Create:
 
 ```text
 Interface
-
 Implementation
 ```
 
@@ -648,11 +933,8 @@ Examples:
 
 ```text
 PaymentStrategy
-
 PricingStrategy
-
 SortingStrategy
-
 SplitStrategy
 ```
 
@@ -670,6 +952,8 @@ Create:
 Factory
 ```
 
+> ⚠️ **Important:** Factory is optional. Do not force a Factory into every problem.
+
 ---
 
 ## ✅ Step 6: Create Service
@@ -680,11 +964,8 @@ Examples:
 
 ```text
 BookingService
-
 PaymentService
-
 ExpenseService
-
 SearchService
 ```
 
@@ -696,11 +977,58 @@ Demonstrate the flow.
 
 ```text
 Input
-    ↓
+  ↓
 Service Call
-    ↓
+  ↓
+Business Logic
+  ↓
 Output
 ```
+
+---
+
+# 🧩 Typical Kotlin Project Structure
+
+When practising in a Kotlin Project environment, keep the structure simple.
+
+```text
+src/main/kotlin/
+│
+├── model/
+│   └── Models.kt
+│
+├── repository/
+│   └── FlightRepository.kt
+│
+├── strategy/
+│   └── PaymentStrategy.kt
+│
+├── factory/
+│   └── PaymentFactory.kt
+│
+├── service/
+│   └── FlightBookingService.kt
+│
+└── Main.kt
+```
+
+### Remember
+
+You **do not need every folder for every problem**.
+
+For example, if Factory is not required:
+
+```text
+model/
+repository/
+strategy/
+service/
+Main.kt
+```
+
+That is perfectly valid.
+
+> **DRSFSM is a thinking framework, not a mandatory folder structure.**
 
 ---
 
@@ -708,26 +1036,179 @@ Output
 
 Before you stop coding, quickly verify:
 
-- ✅ Domain models created
-- ✅ Repository interface + implementation
-- ✅ Strategy used where behaviour changes
-- ✅ Factory added only if needed
-- ✅ Business logic inside Service
-- ✅ `main()` demonstrates the complete flow
-- ✅ Code is clean and readable
+* [ ] Requirements understood
+* [ ] Domain models created
+* [ ] Repository interface + implementation
+* [ ] Strategy used where behaviour changes
+* [ ] Factory added only if needed
+* [ ] Business logic inside Service
+* [ ] `main()` demonstrates the complete flow
+* [ ] Code is clean and readable
 
 ---
 
-## 📖 Summary So Far
+# 🌍 Examples Where This Framework Applies
 
-| Step | Ask Yourself |
-|------|--------------|
-| 🧩 Domain | What things exist? |
-| 🗂 Repository | Where does data come from? |
-| 🎯 Strategy | What behaviour changes? |
-| 🏭 Factory | Who creates objects? |
-| 🧠 Service | What action does the user perform? |
-| ▶️ Main | How do I prove my design works? |
+The DRSFSM Framework can be applied to many LLD interview problems.
+
+---
+
+## 🏡 Property Listing Service
+
+### Domain
+
+```text
+Property
+User
+Listing
+Booking
+```
+
+### Strategy
+
+```text
+SearchStrategy
+PricingStrategy
+```
+
+### Service
+
+```text
+PropertyListingService
+```
+
+---
+
+## ✈️ Flight Aggregation System
+
+### Domain
+
+```text
+Flight
+Airline
+SearchRequest
+```
+
+### Strategy
+
+```text
+SortingStrategy
+FilterStrategy
+```
+
+### Service
+
+```text
+FlightSearchService
+```
+
+---
+
+## 💰 Expense Management System
+
+### Domain
+
+```text
+User
+Expense
+Group
+Split
+```
+
+### Strategy
+
+```text
+SplitStrategy
+
+Equal Split
+Percentage Split
+Exact Split
+```
+
+### Service
+
+```text
+ExpenseService
+```
+
+---
+
+## 🏨 Hotel Booking System
+
+### Domain
+
+```text
+Hotel
+Room
+Guest
+Reservation
+```
+
+### Strategy
+
+```text
+PricingStrategy
+PaymentStrategy
+```
+
+### Service
+
+```text
+HotelBookingService
+```
+
+---
+
+## ✈️ Flight Booking System
+
+### Domain
+
+```text
+Passenger
+Flight
+Seat
+Payment
+Booking
+```
+
+### Strategy
+
+```text
+PaymentStrategy
+```
+
+### Service
+
+```text
+FlightBookingService
+```
+
+---
+
+## 🗺️ Travel Itinerary Management
+
+### Domain
+
+```text
+Traveler
+Trip
+Itinerary
+Activity
+Destination
+```
+
+### Strategy
+
+```text
+SortingStrategy
+PlanningStrategy
+```
+
+### Service
+
+```text
+ItineraryService
+```
 
 ---
 
@@ -735,24 +1216,22 @@ Before you stop coding, quickly verify:
 
 ❌ Do **NOT** spend time implementing:
 
-- Real APIs
-- Database
-- Retrofit
-- Networking
-- UI
-- Authentication
+* Real APIs
+* Database
+* Retrofit
+* Networking
+* UI
+* Authentication
 
 ---
 
 ## ✅ Focus On
 
-- Clean object design
-- SOLID principles
-- Separation of responsibility
-- Extensibility
-- Business logic
-
----
+* Clean object design
+* SOLID principles
+* Separation of responsibility
+* Extensibility
+* Business logic
 
 > 💡 **Remember**
 >
@@ -760,18 +1239,41 @@ Before you stop coding, quickly verify:
 
 ---
 
-# 📝 Quick Interview Checklist
+# 🧪 How to Practise
 
-Before ending the interview, verify:
+For each LLD problem:
 
-- ✅ Requirements are understood
-- ✅ Domain models are created
-- ✅ Repository is separated
-- ✅ Strategy is used where behaviour varies
-- ✅ Factory is added only if required
-- ✅ Service contains business logic
-- ✅ `main()` demonstrates the complete flow
-- ✅ Code is clean and readable
+```text
+1. Understand the story
+        ↓
+2. Identify nouns
+        ↓
+3. Create Domain Models
+        ↓
+4. Create Repository
+        ↓
+5. Identify changing behaviour
+        ↓
+6. Add Strategy
+        ↓
+7. Add Factory if required
+        ↓
+8. Create Service
+        ↓
+9. Create main()
+        ↓
+10. Run and verify output
+```
+
+The goal is not to finish as quickly as possible.
+
+The goal is to understand:
+
+> **Who is communicating with whom?**
+
+and:
+
+> **Why does each class exist?**
 
 ---
 
@@ -827,17 +1329,66 @@ Main()
 
 ---
 
-# ✅ Verified Output
-All LLD topic implementations have been successfully executed in the Kotlin Compiler Playground, and their outputs have been verified.
+# 🧠 The Mental Model to Remember in the Interview
+
+If you forget everything else, remember this:
+
+```text
+               REAL WORLD STORY
+                      │
+                      ▼
+                  DOMAIN
+               "What exists?"
+                      │
+                      ▼
+                REPOSITORY
+             "Where is the data?"
+                      │
+                      ▼
+                 STRATEGY
+           "What behaviour varies?"
+                      │
+                      ▼
+                  FACTORY
+          "Who creates the object?"
+                      │
+                      ▼
+                  SERVICE
+          "What does the user do?"
+                      │
+                      ▼
+                   MAIN
+           "Does my design work?"
+```
+
+You are simply converting:
+
+```text
+REAL WORLD
+    ↓
+OBJECTS
+    ↓
+RELATIONSHIPS
+    ↓
+BEHAVIOUR
+    ↓
+BUSINESS LOGIC
+    ↓
+RUNNABLE CODE
+```
 
 ---
 
 # 🚀 Conclusion
 
-Master this flow and you can approach most **Low-Level Design (LLD)** coding interviews confidently.
+Master this flow and you can approach most **Low-Level Design (LLD) coding interviews** confidently.
 
 Instead of memorizing solutions, learn to think systematically.
 
 Every LLD problem is simply another real-world story waiting to be converted into clean, extensible code.
+
+> **Don't memorize the solution.**
+>
+> **Memorize the process.**
 
 Happy Coding! 🚀

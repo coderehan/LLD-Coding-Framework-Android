@@ -63,14 +63,14 @@ Demonstrate using main()
 
 # 🧠 Memory Shortcut
 
-| Letter | Meaning       | Simple Question                    |
-| ------ | ------------- | ---------------------------------- |
-| **D**  | Domain Models | What things exist?                 |
-| **R**  | Repository    | Where does data come from?         |
-| **S**  | Strategy      | What behaviour changes?            |
-| **F**  | Factory       | Who creates objects?               |
-| **S**  | Service       | What action does the user perform? |
-| **M**  | Main          | How do I prove it works?           |
+| **Letter** | **Meaning**   | **Simple Question**                       |
+| ---------- | ------------- | ----------------------------------------- |
+| **D**      | Domain Models | **What things exist?**                    |
+| **R**      | Repository    | **Where does data come from?**            |
+| **S**      | Strategy      | **What are the different ways to do it?** |
+| **F**      | Factory       | **Which one should I create?**            |
+| **S**      | Service       | **What action does the user perform?**    |
+| **M**      | Main          | **How do I prove it works?**              |
 
 ### DRSFSM
 

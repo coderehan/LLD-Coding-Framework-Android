@@ -249,17 +249,54 @@ class FlightRepositoryImpl : FlightRepository {
 
 ---
 
-### 5. Strategy Implementations → Strategy
+# Strategy & Factory — Simple Explanation
+
+These two are easy to confuse in LLD interviews.
+
+The easiest way to understand them is:
+
+> **Strategy = Different ways**
+> **Factory = Creates the selected way**
+
+---
+
+# 3. `Strategy` → Different Ways of Doing Something
 
 ```text
-             PaymentStrategy
-              ▲          ▲
-              │          │
-              │          │
-        UpiPayment   CardPayment
+                    Payment
+                       │
+              "How should I pay?"
+                       │
+          ┌────────────┼────────────┐
+          ↓            ↓            ↓
+         UPI          Card        Wallet
 ```
 
-All payment implementations follow the same contract.
+The **Service doesn't want to know the payment details**.
+
+It only says:
+
+```kotlin
+paymentStrategy.pay(flight.price)
+```
+
+### Simple Meaning
+
+> **Strategy means: "There are multiple ways to do the same thing."**
+
+For example:
+
+```text
+Pay → UPI
+Pay → Card
+Pay → Wallet
+```
+
+All of them do the same job — **payment** — but each does it differently.
+
+---
+
+## Strategy Interface
 
 ```kotlin
 interface PaymentStrategy {
@@ -267,43 +304,232 @@ interface PaymentStrategy {
 }
 ```
 
+---
+
+## Strategy Implementations
+
 ```kotlin
-class UpiPayment : PaymentStrategy
+class UpiPayment : PaymentStrategy {
+
+    override fun pay(amount: Double) {
+        println("Paying using UPI")
+    }
+}
 ```
 
 ```kotlin
-class CardPayment : PaymentStrategy
+class CardPayment : PaymentStrategy {
+
+    override fun pay(amount: Double) {
+        println("Paying using Card")
+    }
+}
 ```
-
-**Simple meaning:**
-
-> Strategy defines **the common behaviour**, while each implementation defines **its own way of performing it**.
 
 ---
 
-### 6. `Factory` → Creates Strategy Objects
+### 🧠 Remember
+
+> **Strategy = "What are the different ways to do this?"**
+
+---
+
+# 4. `Factory` → Choose and Create the Right One
+
+Now imagine the user selects:
 
 ```text
-PaymentFactory
-      │
-      │ creates
-      ▼
-PaymentStrategy
-      │
-      ├── UpiPayment
-      └── CardPayment
+Payment Method = UPI
 ```
 
-The Factory's job is **object creation**.
+Who creates the `UpiPayment` object?
+
+That's where **Factory** comes in.
+
+```text
+User selects UPI
+       ↓
+   PaymentFactory
+       ↓
+Creates UpiPayment
+```
+
+---
+
+## Payment Type
 
 ```kotlin
-val payment = factory.create(PaymentType.UPI)
+enum class PaymentType {
+    UPI,
+    CARD,
+    WALLET
+}
 ```
 
-**Simple meaning:**
+---
 
-> Factory says: **"You asked for UPI, so I'll create the UPI payment object."**
+## Payment Factory
 
+```kotlin
+class PaymentFactory {
+
+    fun create(type: PaymentType): PaymentStrategy {
+
+        return when (type) {
+
+            PaymentType.UPI ->
+                UpiPayment()
+
+            PaymentType.CARD ->
+                CardPayment()
+
+            PaymentType.WALLET ->
+                WalletPayment()
+        }
+    }
+}
+```
+
+Now:
+
+```kotlin
+val strategy =
+    paymentFactory.create(PaymentType.UPI)
+```
+
+The Factory gives us:
+
+```text
+UpiPayment
+```
+
+Then Service uses it:
+
+```kotlin
+paymentStrategy.pay(amount)
+```
+
+---
+
+# 🔥 Strategy + Factory Together
+
+This is the part to **memorize for the interview**:
+
+```text
+                 USER
+                  │
+                  │ selects UPI
+                  ↓
+             ┌──────────┐
+             │ Factory  │
+             └────┬─────┘
+                  │
+                  │ creates
+                  ↓
+          UpiPaymentStrategy
+                  │
+                  │
+                  ↓
+              Service
+                  │
+                  │ pay()
+                  ↓
+              Payment
+```
+
+---
+
+# 🧠 Easiest Memory Trick
+
+> **Strategy = Different ways**
+
+> **Factory = Creates the selected way**
+
+Or simply:
+
+```text
+S → "HOW can I do it?"
+
+F → "WHICH one should I create?"
+```
+
+---
+
+# 🌍 Real-Life Example
+
+Imagine booking a flight.
+
+The user needs to make a payment.
+
+There are different ways:
+
+```text
+                 PAYMENT
+                    │
+        ┌───────────┼───────────┐
+        ↓           ↓           ↓
+       UPI         CARD       WALLET
+```
+
+### Strategy
+
+Each payment method is a different **way of performing the payment**.
+
+```text
+UPI   → Pay using UPI
+CARD  → Pay using Card
+WALLET → Pay using Wallet
+```
+
+### Factory
+
+The Factory looks at the user's selection and **creates the correct payment object**.
+
+```text
+User selects CARD
+       ↓
+PaymentFactory
+       ↓
+CardPayment
+```
+
+### Service
+
+The Service doesn't care about the implementation.
+
+It simply says:
+
+```kotlin
+paymentStrategy.pay(amount)
+```
+
+So the complete flow is:
+
+```text
+User
+ ↓
+Select Payment Method
+ ↓
+Factory
+ ↓
+Creates Strategy
+ ↓
+Service
+ ↓
+paymentStrategy.pay()
+ ↓
+Payment completed
+```
+
+---
+
+# 🎯 Final One-Line Understanding
+
+```text
+Strategy → Different ways of performing the same task.
+
+Factory  → Creates the appropriate Strategy object.
+```
 ---
 
 ### 7. Service → Domain Models

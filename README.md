@@ -256,6 +256,7 @@ These two are easy to confuse in LLD interviews.
 The easiest way to understand them is:
 
 > **Strategy = Different ways**
+
 > **Factory = Creates the selected way**
 
 ---

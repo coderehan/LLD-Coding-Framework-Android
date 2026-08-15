@@ -367,8 +367,8 @@ fun main() {
     val flight = Flight(
         id = "F1",
         flightNumber = "AI101",
-        from = "BLR",
-        to = "DEL",
+        source = "BLR",
+        destination = "DEL",
         price = 4500.0,
         seats = mutableListOf(
             Seat("1A", SeatType.ECONOMY),

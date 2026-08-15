@@ -152,8 +152,21 @@ class InMemoryFlightRepository(
 ### 💳 Payment Strategy
 
 ```kotlin
+/**
+ * Strategy interface for handling different payment methods.
+ *
+ * Different payment methods such as UPI, Card, or Wallet
+ * can provide their own implementation of this interface.
+ */
 interface PaymentStrategy {
 
+    /**
+     * Processes payment for the given amount.
+     *
+     * @param amount Amount that needs to be paid.
+     * @return true  → payment was successful
+     *         false → payment failed
+     */
     fun pay(amount: Double): Boolean
 }
 ```

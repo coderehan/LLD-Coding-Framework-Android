@@ -94,8 +94,8 @@ data class Seat(
 data class Flight(
     val id: String,
     val flightNumber: String,
-    val from: String,
-    val to: String,
+    val source: String,
+    val destination: String,
     val price: Double,
     val seats: MutableList<Seat>
 )

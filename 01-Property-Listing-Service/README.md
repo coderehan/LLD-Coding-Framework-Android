@@ -269,22 +269,6 @@ class ListingService(
         return filterStrategy?.filter(results) ?: results
     }
 
-    /**
-     * Marks a property as unavailable.
-     *
-     * This can represent a property being booked,
-     * temporarily unavailable, or removed from search results.
-     */
-    fun markUnavailable(propertyId: String) {
-
-        // Find the requested property.
-        // If it doesn't exist, the operation cannot continue.
-        val property = repository.getById(propertyId)
-            ?: throw NoSuchElementException("Property not found")
-
-        // Mark the property as unavailable.
-        property.isAvailable = false
-    }
 }
 ```
 

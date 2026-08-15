@@ -338,38 +338,6 @@ class ItineraryService(
         return repository.getById(id)
             ?: throw NoSuchElementException("Itinerary not found")
     }
-
-    /**
-     * Prints the complete itinerary in a
-     * simple day-by-day format.
-     *
-     * This is mainly useful for demonstrating
-     * the completed LLD during the interview.
-     */
-    fun printItinerary(id: String) {
-
-        // Retrieve the requested itinerary.
-        val itinerary = getItinerary(id)
-
-        // Print the trip name first.
-        println("Trip: ${itinerary.tripName}")
-
-        // Iterate through each day in the itinerary.
-        for (day in itinerary.days) {
-
-            println("Day ${day.dayNumber}:")
-
-            // Print all activities planned for that day.
-            for (activity in day.activities) {
-
-                println(
-                    "  ${activity.startTime} - " +
-                    "${activity.name} (${activity.type}) " +
-                    "at ${activity.location}"
-                )
-            }
-        }
-    }
 }
 ```
 

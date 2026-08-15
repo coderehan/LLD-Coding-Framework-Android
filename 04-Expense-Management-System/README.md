@@ -379,7 +379,7 @@ class ExactSplitStrategy : SplitStrategy {
 ### Real-life example
 
 ```text
-Movie tickets = ₹500
+Trip = ₹500
 
 Alice → ₹300
 Carol → ₹200
@@ -544,10 +544,10 @@ fun main() {
     )
 
     // Example 2: Exact split
-    // Bob paid ₹500 for movie tickets.
+    // Bob paid ₹500 for trip.
     // Alice owes ₹300 and Carol owes ₹200.
     service.addExpense(
-        description = "Movie tickets",
+        description = "Trip",
         amount = 500.0,
         paidBy = bob,
         participants = listOf(alice, carol),
@@ -602,7 +602,7 @@ Bob   → -₹300
 Carol → -₹300
 ```
 
-#### Movie tickets — ₹500
+#### Trip — ₹500
 
 Bob paid ₹500.
 

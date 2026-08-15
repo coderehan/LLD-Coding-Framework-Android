@@ -28,6 +28,35 @@ This is the **classic booking flow topic**.
 
 ---
 
+FlightBookingSystem/
+│
+└── src/main/kotlin/
+    │
+    ├── domain/
+    │   ├── Passenger.kt
+    │   ├── Flight.kt
+    │   ├── Seat.kt
+    │   ├── Booking.kt
+    │   ├── SeatType.kt
+    │   ├── SeatStatus.kt
+    │   └── BookingStatus.kt
+    │
+    ├── repository/
+    │   ├── FlightRepository.kt
+    │   └── InMemoryFlightRepository.kt
+    │
+    ├── strategy/
+    │   ├── PaymentStrategy.kt
+    │   ├── CreditCardPayment.kt
+    │   └── UpiPayment.kt
+    │
+    ├── service/
+    │   └── BookingService.kt
+    │
+    └── Main.kt
+
+---
+
 # 1️⃣ ENUMS + DATA CLASSES
 
 ```kotlin

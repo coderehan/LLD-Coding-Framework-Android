@@ -1,8 +1,3 @@
-Yes. I’ve now used the **exact content/code currently in your Hotel Booking README** and I’m **not changing the implementation, names, methods, or logic**. I’m only making the comments more meaningful and adding one clear sample output. ([GitHub][1])
-
-Below is the complete `README.md` you can copy-paste.
-
-````markdown
 # 🏨 LLD TOPIC: HOTEL BOOKING SYSTEM
 
 ### (Hotel reservations - Booking.com, Agoda, Expedia, Airbnb, OYO, MakeMyTrip, Goibibo, Trivago, Hotels.com, Marriott, Hilton, Taj, Hotels)
@@ -12,6 +7,13 @@ Below is the complete `README.md` you can copy-paste.
 ## 🎯 Overview
 
 Very similar to Flight Booking, but the "unit" being booked is a Room instead of a Seat, and price often depends on dates (dynamic/seasonal pricing) → good place to show Strategy pattern for PRICING instead of payment.
+
+### 🔑 Key ideas to show:
+
+- 🔒 Room locking before booking (concurrency awareness)
+- 💰 Strategy pattern for pricing
+- 🔄 Booking / Room status for lifecycle
+- 🏨 Service class for booking + cancellation
 
 ---
 
@@ -24,6 +26,39 @@ Very similar to Flight Booking, but the "unit" being booked is a Room instead of
 | 3 | Strategy interface | How the price is calculated |
 | 4 | Service class | Booking + room locking + pricing |
 | 5 | `main()` | Proves everything works |
+
+---
+
+## 📁 PROJECT STRUCTURE
+
+```text
+HotelBookingSystem/
+│
+└── src/main/kotlin/
+    │
+    ├── model/
+    │   ├── Guest.kt
+    │   ├── Room.kt
+    │   ├── Hotel.kt
+    │   ├── Booking.kt
+    │   ├── RoomType.kt
+    │   ├── RoomStatus.kt
+    │   └── BookingStatus.kt
+    │
+    ├── repository/
+    │   ├── HotelRepository.kt
+    │   └── InMemoryHotelRepository.kt
+    │
+    ├── strategy/
+    │   ├── PricingStrategy.kt
+    │   ├── StandardPricingStrategy.kt
+    │   └── SurgePricingStrategy.kt
+    │
+    ├── service/
+    │   └── HotelBookingService.kt
+    │
+    └── Main.kt
+```
 
 ---
 
@@ -57,6 +92,8 @@ data class Room(
     val roomNo: String,
     val type: RoomType,
     val basePrice: Double,
+
+    // 'var status' because a room's status changes over time.
     var status: RoomStatus = RoomStatus.AVAILABLE
 )
 
@@ -74,6 +111,8 @@ data class Booking(
     val guest: Guest,
     val nights: Int,
     val totalPrice: Double,
+
+    // Booking starts as CONFIRMED when the booking is successfully created.
     var status: BookingStatus = BookingStatus.CONFIRMED
 )
 ```
@@ -94,52 +133,63 @@ data class Booking(
 ```kotlin
 interface HotelRepository {
 
+    // Get one specific hotel using its unique hotel ID.
     fun getById(id: String): Hotel?
 
+    // Search all hotels available in a particular city.
     fun searchByCity(city: String): List<Hotel>
 }
 ```
 
 ### 💡 Repository responsibility
 
-The repository is responsible for accessing hotel data.
+The repository is responsible for accessing `Hotel` data.
 
-- `getById()` → gets one specific hotel using its unique ID.
-- `searchByCity()` → returns all hotels available in a particular city.
+- `getById()` → gets one specific hotel.
+- `searchByCity()` → returns multiple hotels matching the requested city.
 
 ---
 
-## In-Memory Hotel Repository
+## 🏨 In-Memory Hotel Repository
 
 ```kotlin
+/**
+ * In-memory implementation of HotelRepository.
+ *
+ * Repository is responsible for accessing Hotel data.
+ * In a real application, this data could come from an API or database.
+ * For this LLD interview, we use in-memory data instead.
+ */
 class InMemoryHotelRepository(
     private val hotels: MutableList<Hotel>
 ) : HotelRepository {
 
+    /**
+     * Finds one specific Hotel using its unique hotel ID.
+     *
+     * Returns:
+     * - Hotel → if a matching hotel exists
+     * - null  → if no hotel is found
+     */
     override fun getById(id: String) =
         hotels.find { it.id == id }
 
+    /**
+     * Searches Hotel models based on city.
+     *
+     * Returns a List because multiple hotels
+     * can exist in the same city.
+     */
     override fun searchByCity(city: String) =
         hotels.filter { it.city == city }
 }
 ```
 
-### 💡 Meaning
-
-`InMemoryHotelRepository` is our temporary data source for the LLD exercise.
-
-Instead of connecting to a real database or API, we keep hotels inside a `MutableList`.
-
-The repository works with the `Hotel` domain model to:
-
-- Find one hotel by ID.
-- Find multiple hotels by city.
-
 ---
 
 # 3️⃣ STRATEGY INTERFACE
 
-> The thing that varies here = HOW the price per night is calculated.
+> The thing that varies here = **HOW the price is calculated.**
 
 For example:
 
@@ -150,8 +200,21 @@ For example:
 ### 💰 Pricing Strategy
 
 ```kotlin
+/**
+ * Strategy interface for calculating hotel booking prices.
+ *
+ * Different pricing strategies can provide their own
+ * implementation without changing HotelBookingService.
+ */
 interface PricingStrategy {
 
+    /**
+     * Calculates the final price for the booking.
+     *
+     * @param basePrice Base price of the selected room.
+     * @param nights Number of nights the guest wants to stay.
+     * @return Final calculated booking price.
+     */
     fun calculatePrice(
         basePrice: Double,
         nights: Int
@@ -159,36 +222,20 @@ interface PricingStrategy {
 }
 ```
 
-### 💡 Why Strategy?
-
-The `HotelBookingService` should not contain different pricing formulas.
-
-Instead, we can provide different pricing strategies.
-
-```text
-HotelBookingService
-        ↓
-PricingStrategy
-        ↓
- ┌───────────────┐
- │               │
-Standard      Surge
-Pricing       Pricing
-```
-
-The service simply asks:
-
-> "Calculate the price."
-
-The selected strategy decides **how** the price is calculated.
-
 ---
 
 ## 💵 Standard Pricing Strategy
 
-> Simple pricing: `basePrice * nights`, no surge
+> Simple pricing: `basePrice * nights`, no surge.
 
 ```kotlin
+/**
+ * Standard pricing implementation.
+ *
+ * The guest simply pays:
+ *
+ * Base price × Number of nights
+ */
 class StandardPricingStrategy : PricingStrategy {
 
     override fun calculatePrice(
@@ -215,9 +262,14 @@ Total = ₹2,000 × 3
 
 ## 📈 Surge Pricing Strategy
 
-> Weekend/seasonal pricing: adds a 20% surge on top
+> Weekend/seasonal pricing: adds a 20% surge on top.
 
 ```kotlin
+/**
+ * Surge pricing implementation.
+ *
+ * Adds a 20% increase to the normal calculated price.
+ */
 class SurgePricingStrategy : PricingStrategy {
 
     override fun calculatePrice(
@@ -237,7 +289,7 @@ Base price = ₹6,000
 Nights     = 2
 
 Normal = ₹6,000 × 2
-      = ₹12,000
+       = ₹12,000
 
 Surge = ₹12,000 × 1.2
       = ₹14,400
@@ -248,11 +300,31 @@ Surge = ₹12,000 × 1.2
 # 4️⃣ SERVICE CLASS
 
 ```kotlin
+/**
+ * Service responsible for handling the main hotel booking business logic.
+ *
+ * It coordinates:
+ * - Hotel data through HotelRepository
+ * - Room availability and state
+ * - Pricing through PricingStrategy
+ * - Booking creation and cancellation
+ */
 class HotelBookingService(
     private val hotelRepo: HotelRepository,
     private val bookings: MutableMap<String, Booking> = mutableMapOf()
 ) {
 
+    /**
+     * Books a specific room for a guest.
+     *
+     * Booking flow:
+     * 1. Find the requested hotel using its hotel ID.
+     * 2. Find the requested room.
+     * 3. Check room availability.
+     * 4. Lock/book the room to prevent another booking attempt.
+     * 5. Calculate the total price using PricingStrategy.
+     * 6. Create and store the booking.
+     */
     fun bookRoom(
         hotelId: String,
         roomNo: String,
@@ -272,10 +344,13 @@ class HotelBookingService(
             it.roomNo == roomNo
         } ?: throw NoSuchElementException("Room not found")
 
-        // Check and update the room status inside a synchronized block.
-        //
-        // This makes the operation thread-safe and prevents two users
-        // from booking the same room at the same time.
+        /**
+         * Lock/check room availability inside a synchronized block.
+         *
+         * This makes the availability check and status update
+         * thread-safe and prevents two users from booking
+         * the same room at the same time.
+         */
         synchronized(room) {
 
             // Only AVAILABLE rooms can be booked.
@@ -289,14 +364,15 @@ class HotelBookingService(
 
         // Use the selected PricingStrategy to calculate the final price.
         //
-        // HotelBookingService does not need to know whether the pricing
-        // is standard, weekend, or seasonal.
+        // HotelBookingService does not need to know how the price
+        // is calculated. The selected strategy handles that logic.
         val totalPrice = pricingStrategy.calculatePrice(
             room.basePrice,
             nights
         )
 
-        // Create a Booking containing all information related to this reservation.
+        // Create a Booking containing the selected hotel, room,
+        // guest, number of nights, and calculated total price.
         val booking = Booking(
             id = "HB-${bookings.size + 1}",
             hotel = hotel,
@@ -313,17 +389,25 @@ class HotelBookingService(
         return booking
     }
 
+    /**
+     * Cancels an existing booking.
+     *
+     * Cancellation flow:
+     * 1. Find the booking using its booking ID.
+     * 2. Mark the booking as CANCELLED.
+     * 3. Release the room so another guest can book it.
+     */
     fun cancelBooking(bookingId: String) {
 
         // Find the existing booking using its unique booking ID.
-        // If it doesn't exist, cancellation cannot continue.
+        // Cancellation cannot continue if the booking doesn't exist.
         val booking = bookings[bookingId]
             ?: throw NoSuchElementException("Booking not found")
 
         // Mark the booking as cancelled.
         booking.status = BookingStatus.CANCELLED
 
-        // Release the room so another guest can book it.
+        // Release the room and make it available for future bookings.
         booking.room.status =
             RoomStatus.AVAILABLE // free the room again
     }
@@ -332,7 +416,7 @@ class HotelBookingService(
 
 ### 🧠 Service business logic
 
-The main booking flow is:
+#### Booking
 
 ```text
 Hotel ID
@@ -356,7 +440,7 @@ Create Booking
 Store Booking
 ```
 
-Cancellation:
+#### Cancellation
 
 ```text
 Booking ID
@@ -372,14 +456,13 @@ Room → AVAILABLE
 
 # 5️⃣ `main()`
 
-> Always write a `main()` to PROVE your code compiles and runs.
+> Always write a `main()` to **PROVE your code compiles and runs.**
 
 ```kotlin
 fun main() {
 
-    // Create a sample hotel with two rooms.
-    // In a real application, this information would come from
-    // an API or database.
+    // Create a sample Hotel with two rooms.
+    // In a real application, this information would come from an API or database.
     val hotel = Hotel(
         id = "HT1",
         name = "Taj Residency",
@@ -398,8 +481,8 @@ fun main() {
         )
     )
 
-    // Create an in-memory repository containing our hotel.
-    // The repository provides access to the Hotel domain model.
+    // Use an in-memory repository for this LLD exercise.
+    // The repository provides access to our Hotel domain model.
     val repo = InMemoryHotelRepository(
         mutableListOf(hotel)
     )
@@ -417,8 +500,8 @@ fun main() {
     // Book room 101 for 3 nights using standard pricing.
     //
     // Expected flow:
-    // Hotel found → Room found → Room available
-    // → Room booked → Price calculated → Booking confirmed
+    // Hotel found → Room available → Room booked
+    // → Price calculated → Booking confirmed
     val booking = service.bookRoom(
         "HT1",
         "101",
@@ -433,7 +516,6 @@ fun main() {
     )
 
     // Book another room for 2 nights using surge pricing.
-    //
     // This demonstrates that we can change the pricing behavior
     // without changing HotelBookingService.
     val surgeBooking = service.bookRoom(
@@ -450,7 +532,8 @@ fun main() {
     )
 
     // Cancel the first booking.
-    // The booking becomes CANCELLED and room 101 becomes AVAILABLE again.
+    // Cancellation changes the booking status to CANCELLED
+    // and releases room 101 back to AVAILABLE.
     service.cancelBooking(booking.id)
 
     println(
@@ -462,7 +545,7 @@ fun main() {
 
 ---
 
-# 🖥️ Sample Output
+# 🖥️ Output
 
 ```text
 Booking: Room 101, Total = ₹6000.0
@@ -474,16 +557,14 @@ Room 101 status after cancel: AVAILABLE
 
 # 🧠 Interview Focus
 
+The important parts of this topic are:
+
 > 🏨 **Room instead of Seat** → same booking concept as Flight Booking.
 
-> 🔒 **Room locking** → `synchronized(room)` prevents two users from booking the same room simultaneously.
+> 🔒 **Room Locking** → `synchronized(room)` prevents two users from booking the same room simultaneously.
 
 > 💰 **Pricing Strategy** → allows standard, weekend, or seasonal pricing without changing `HotelBookingService`.
 
 > 🔄 **Booking Status** → represents the booking lifecycle.
 
 > 🧩 **Service Class** → coordinates room availability, pricing, booking creation, and cancellation.
-````
-
-
-[1]: https://github.com/coderehan/LLD-Coding-Framework-Android/blob/master/07-Hotel-Booking-System/README.md "LLD-Coding-Framework-Android/07-Hotel-Booking-System/README.md at master · coderehan/LLD-Coding-Framework-Android · GitHub"

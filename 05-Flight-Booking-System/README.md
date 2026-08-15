@@ -208,9 +208,6 @@ interface PaymentStrategy {
 class CreditCardPayment : PaymentStrategy {
 
     override fun pay(amount: Double): Boolean {
-
-        println("Charged ₹$amount to credit card")
-
         return true // pretend payment always succeeds for this demo
     }
 }
@@ -224,9 +221,6 @@ class CreditCardPayment : PaymentStrategy {
 class UpiPayment : PaymentStrategy {
 
     override fun pay(amount: Double): Boolean {
-
-        println("Charged ₹$amount via UPI")
-
         return true
     }
 }
@@ -449,8 +443,19 @@ fun main() {
     )
 
     println(
-        "Re-booked successfully: ${newBooking.status}"
-    )
+    """
+    ===== Booking Details =====
+    Booking ID : ${booking.id}
+    Passenger  : ${booking.passenger.name}
+    Flight     : ${booking.flight.flightNo}
+    Route      : ${booking.flight.source} → ${booking.flight.destination}
+    Seat       : ${booking.seat.seatNo}
+    Seat Type  : ${booking.seat.seatType}
+    Price      : ₹${booking.flight.price}
+    Status     : ${booking.status}
+    ===========================
+    """.trimIndent()
+)
 }
 ```
 

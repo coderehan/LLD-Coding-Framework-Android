@@ -468,7 +468,7 @@ Seat Type  : ECONOMY
 Price      : ₹4500.0
 Status     : CONFIRMED
 ===========================
-
+```
 ---
 
 ## 🧠 Interview Focus

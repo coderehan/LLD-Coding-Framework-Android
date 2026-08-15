@@ -28,9 +28,9 @@ This is the **classic booking flow topic**.
 
 ---
 
-FlightBookingSystem/
-│
-└── src/main/kotlin/
+    FlightBookingSystem/
+    │
+    └── src/main/kotlin/
     │
     ├── domain/
     │   ├── Passenger.kt

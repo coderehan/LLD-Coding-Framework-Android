@@ -6,48 +6,43 @@
 
 ## 🔄 SYSTEM COMMUNICATION FLOW
 
-Before writing code, understand **who communicates with whom**.
-
-```text
-                         👤 User
+                    ┌──────────────┐
+                    │    App.kt    │
+                    │   main()     │
+                    └──────┬───────┘
                            │
-                           │ creates expense
+                           │ calls
                            ▼
-                  ┌─────────────────┐
-                  │  ExpenseService  │
-                  └────────┬────────┘
-                           │
-             ┌─────────────┴─────────────┐
-             │                           │
-             ▼                           ▼
-     ┌─────────────────┐        ┌─────────────────┐
-     │  SplitStrategy   │        │ ExpenseRepository│
-     └────────┬────────┘        └────────┬────────┘
-              │                          │
-       ┌──────┼────────┐                 │
-       │      │        │                 │
-       ▼      ▼        ▼                 ▼
-    Equal  Percentage  Exact         Stores Expense
-    Split    Split     Split              │
-                                           │
-                                           ▼
-                                    ┌──────────────┐
-                                    │   Expenses   │
-                                    └──────┬───────┘
-                                           │
-                                           │ get all expenses
-                                           ▼
-                                  ┌─────────────────┐
-                                  │  ExpenseService  │
-                                  │                 │
-                                  │ Calculate       │
-                                  │ Balances        │
-                                  └────────┬────────┘
-                                           │
-                                           ▼
-                                  👥 User Balances
-````
-
+                 ┌──────────────────┐
+                 │  ExpenseService  │
+                 └───────┬────┬─────┘
+                         │    │
+              calls      │    │      calls
+                         │    │
+             ┌───────────┘    └──────────────┐
+             ▼                               ▼
+     ┌──────────────────┐             ┌──────────────────┐
+     │ ExpenseRepository│             │  SplitStrategy   │
+     │    (interface)   │             │    (interface)   │
+     └─────────┬────────┘             └─────────┬────────┘
+             │                                │
+             │ implemented by                 │ implemented by
+             ▼                                ▼
+     ┌──────────────────────┐        ┌──────────┬──────────┬──────────┐
+     │ InMemoryExpenseRepo  │        │   Equal  │Percentage│  Exact   │
+     └──────────┬───────────┘        │   Split  │  Split   │  Split   │
+              │                      └──────────┴──────────┴──────────┘
+              │
+              │ stores / retrieves
+              ▼
+       ┌─────────────────┐
+       │  Domain Models  │
+       │                 │
+       │ User            │
+       │ Expense         │
+       │ Split           │
+       └─────────────────┘
+---
 ### 🧠 Simple Explanation
 
 Think about a real-life dinner with friends.
@@ -637,84 +632,3 @@ Carol → -₹500
 > **Negative (-)** → user owes money
 
 ---
-
-# 🎯 FINAL LLD FLOW
-
-```text
-                    👤 USERS
-                       │
-                       ▼
-                ┌──────────────┐
-                │ ExpenseService│
-                └──────┬───────┘
-                       │
-              ┌────────┴────────┐
-              │                 │
-              ▼                 ▼
-      ┌───────────────┐  ┌─────────────────┐
-      │ SplitStrategy │  │ExpenseRepository│
-      └───────┬───────┘  └────────┬────────┘
-              │                   │
-       ┌──────┼──────┐            │
-       ▼      ▼      ▼            ▼
-     Equal  Percent  Exact      Expenses
-      Split   Split   Split         │
-                                    │
-                                    ▼
-                              Get Balances
-                                    │
-                                    ▼
-                              👥 BALANCES
-```
-
-### 🔥 Interview Memory Trick
-
-```text
-WHAT EXISTS?
-     ↓
-User, Expense, Split
-     ↓
-DOMAIN
-
-WHERE IS DATA?
-     ↓
-ExpenseRepository
-
-WHAT CHANGES?
-     ↓
-How expense is split
-     ↓
-SplitStrategy
-
-WHAT ACTIONS?
-     ↓
-Add Expense
-Get Balances
-     ↓
-ExpenseService ⭐
-
-HOW DO I PROVE IT?
-     ↓
-main()
-```
-
-### 💡 The most important thing to remember
-
-> **Expense Management = ADD → SPLIT → BALANCE**
-
-And the Strategy pattern exists because:
-
-> **The way we split an expense can change.**
-
-```text
-Equal
-Percentage
-Exact
-```
-
-That is the core business logic of this LLD.
-
-```
-
-**One correction to your current README:** the sample output currently implied by the code should be **U1 = ₹300, U2 = ₹200, U3 = -₹500**, not `0, 0, -200`. The code itself produces the former because Alice and Bob are net receivers after the two expenses. :contentReference[oaicite:1]{index=1}
-```

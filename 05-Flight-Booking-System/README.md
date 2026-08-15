@@ -101,16 +101,36 @@ interface FlightRepository {
 ### In-Memory Flight Repository
 
 ```kotlin
+/**
+ * In-memory implementation of FlightRepository.
+ *
+ * Repository is responsible for accessing Flight data.
+ * In a real application, this data could come from an API or database.
+ * For this LLD interview, we use in-memory data instead.
+ */
 class InMemoryFlightRepository(
     private val flights: MutableList<Flight>
 ) : FlightRepository {
 
+    /**
+     * Finds one specific Flight using its flight number.
+     *
+     * Returns:
+     * - Flight → if a matching flight exists
+     * - null   → if no flight is found
+     */
     override fun getByFlightNumber(flightNo: String): Flight? {
         return flights.find { flight ->
             flight.flightNo == flightNo
         }
     }
 
+    /**
+     * Searches Flight models based on source and destination.
+     *
+     * Returns all matching flights because
+     * multiple flights can exist for the same route.
+     */
     override fun searchFlights(
         source: String,
         destination: String

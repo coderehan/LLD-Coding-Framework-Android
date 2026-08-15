@@ -87,11 +87,13 @@ data class Booking(
 ```kotlin
 interface FlightRepository {
 
-    fun getById(id: String): Flight?
+    // Get one specific flight using its flight number
+    fun getByFlightNumber(flightNo: String): Flight?
 
-    fun search(
-        from: String,
-        to: String
+    // Search all available flights between two locations
+    fun searchFlights(
+        source: String,
+        destination: String
     ): List<Flight>
 }
 ```

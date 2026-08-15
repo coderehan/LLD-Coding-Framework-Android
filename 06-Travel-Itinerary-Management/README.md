@@ -427,13 +427,33 @@ fun main() {
     // Save the completed itinerary.
     service.createItinerary(itinerary)
 
-    // Retrieve and print the itinerary.
-    service.printItinerary(itinerary.id)
+    // Retrieve the saved itinerary.
+    val savedItinerary = service.getItinerary(itinerary.id)
+
+    // Demo/output logic belongs in main().
+    println(
+    """
+    ===== Travel Itinerary =====
+    Trip: ${savedItinerary.tripName}
+
+    ${savedItinerary.days.joinToString("\n") { day ->
+        buildString {
+            appendLine("Day ${day.dayNumber}:")
+            day.activities.forEach { activity ->
+                appendLine(
+                    "  ${activity.startTime} - " +
+                    "${activity.name} (${activity.type}) " +
+                    "at ${activity.location}"
+                )
+            }
+        }
+    }}
+    =============================
+    """.trimIndent()
+)
 }
 ```
-
 ---
-
 # 🖥️ Sample Output
 
 ```text

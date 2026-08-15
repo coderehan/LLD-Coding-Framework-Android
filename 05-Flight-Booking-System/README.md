@@ -339,6 +339,8 @@ class BookingService(
 ```kotlin
 fun main() {
 
+    // Create a sample Flight with two seats.
+    // In a real application, this data would come from an API or database.
     val flight = Flight(
         id = "F1",
         flightNumber = "AI101",
@@ -351,19 +353,29 @@ fun main() {
         )
     )
 
+    // Use an in-memory repository for this LLD exercise.
+    // The repository provides access to our Flight domain model.
     val repo = InMemoryFlightRepository(
         mutableListOf(flight)
     )
 
+    // Create the BookingService and inject the repository.
+    // The service contains the main flight booking business logic.
     val service = BookingService(repo)
 
+    // Create a sample passenger who will book the flight.
     val passenger = Passenger(
         "P1",
         "Rehan"
     )
 
+    // Book seat 1A using Credit Card payment.
+    //
+    // Expected flow:
+    // Flight found → Seat available → Seat locked
+    // → Payment successful → Seat booked → Booking confirmed
     val booking = service.bookSeat(
-        "F1",
+        "AI101",
         "1A",
         passenger,
         CreditCardPayment()
@@ -374,11 +386,12 @@ fun main() {
         "Seat: ${booking.seat.seatNo}"
     )
 
-    // Try to book the SAME seat again -> should fail because it's already BOOKED
+    // Try to book the SAME seat again.
+    // The seat is already BOOKED, so the booking should fail.
     try {
 
         service.bookSeat(
-            "F1",
+            "AI101",
             "1A",
             passenger,
             UpiPayment()
@@ -386,16 +399,21 @@ fun main() {
 
     } catch (e: IllegalStateException) {
 
+        // Expected error because the seat is no longer AVAILABLE.
         println(
             "Expected error: ${e.message}"
         )
     }
 
-    // Cancel and re-book
+    // Cancel the existing booking.
+    // Cancellation changes the booking status to CANCELLED
+    // and releases seat 1A back to AVAILABLE.
     service.cancelBooking(booking.id)
 
+    // Book the same seat again using UPI payment.
+    // This demonstrates that a cancelled seat can be booked again.
     val newBooking = service.bookSeat(
-        "F1",
+        "AI101",
         "1A",
         passenger,
         UpiPayment()

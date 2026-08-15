@@ -226,7 +226,7 @@ class BookingService(
      * Books a specific seat for a passenger.
      *
      * Booking flow:
-     * 1. Find the requested flight.
+     * 1. Find the requested flight using its flight number.
      * 2. Find the requested seat.
      * 3. Lock the seat to prevent another booking attempt.
      * 4. Process payment.
@@ -235,15 +235,15 @@ class BookingService(
      * 7. Create and store the booking.
      */
     fun bookSeat(
-        flightId: String,
+        flightNo: String,
         seatNo: String,
         passenger: Passenger,
         payment: PaymentStrategy
     ): Booking {
 
-        // Get the requested flight from the repository.
+        // Get the requested flight using its flight number.
         // If the flight doesn't exist, booking cannot continue.
-        val flight = flightRepo.getById(flightId)
+        val flight = flightRepo.getByFlightNumber(flightNo)
             ?: throw NoSuchElementException("Flight not found")
 
         // Find the requested seat inside the selected flight.
@@ -310,13 +310,13 @@ class BookingService(
      * Cancels an existing booking.
      *
      * Cancellation flow:
-     * 1. Find the booking.
+     * 1. Find the booking using its booking ID.
      * 2. Mark the booking as CANCELLED.
      * 3. Release the seat so another passenger can book it.
      */
     fun cancelBooking(bookingId: String) {
 
-        // Find the existing booking.
+        // Find the existing booking using its unique booking ID.
         // Cancellation cannot continue if it doesn't exist.
         val booking = bookings[bookingId]
             ?: throw NoSuchElementException("Booking not found")

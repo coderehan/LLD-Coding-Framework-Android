@@ -171,18 +171,18 @@ class InMemoryHotelRepository(
      * - Hotel → if a matching hotel exists
      * - null  → if no hotel is found
      */
-    override fun getById(id: String) =
-        hotels.find { it.id == id }
-
+    override fun getById(id: String): Hotel? {
+        return hotels.find { it.id == id }
+    }
     /**
      * Searches Hotel models based on city.
      *
      * Returns a List because multiple hotels
      * can exist in the same city.
      */
-    override fun searchByCity(city: String) =
-        hotels.filter { it.city == city }
-}
+    override fun searchByCity(city: String): List<Hotel> {
+        return hotels.filter { it.city == city }
+    }
 ```
 
 ---

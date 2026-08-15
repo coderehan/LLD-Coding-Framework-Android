@@ -105,14 +105,20 @@ class InMemoryFlightRepository(
     private val flights: MutableList<Flight>
 ) : FlightRepository {
 
-    override fun getById(id: String) =
-        flights.find { it.id == id }
+    override fun getByFlightNumber(flightNo: String): Flight? {
+        return flights.find { flight ->
+            flight.flightNo == flightNo
+        }
+    }
 
-    override fun search(
-        from: String,
-        to: String
-    ) = flights.filter {
-        it.from == from && it.to == to
+    override fun searchFlights(
+        source: String,
+        destination: String
+    ): List<Flight> {
+        return flights.filter { flight ->
+            flight.source == source &&
+            flight.destination == destination
+        }
     }
 }
 ```

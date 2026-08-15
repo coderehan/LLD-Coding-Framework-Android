@@ -458,6 +458,16 @@ fun main() {
 )
 }
 ```
+===== Booking Details =====
+Booking ID : BK-1
+Passenger  : Rehan
+Flight     : AI101
+Route      : BLR → DEL
+Seat       : 1A
+Seat Type  : ECONOMY
+Price      : ₹4500.0
+Status     : CONFIRMED
+===========================
 
 ---
 

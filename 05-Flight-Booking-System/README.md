@@ -458,6 +458,7 @@ fun main() {
 )
 }
 ```
+### Output
     ===== Booking Details =====
     Booking ID : BK-1
     Passenger  : Rehan

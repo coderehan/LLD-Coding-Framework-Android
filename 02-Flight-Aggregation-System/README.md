@@ -1,10 +1,3 @@
-Understood. I checked your existing **Flight Aggregation System README**. ([GitHub][1])
-
-I’ll keep the same core content/design, but make the code sections cleaner with **meaningful interview-oriented comments**, and add a neat **sample output** like we did for Flight Booking and Hotel Booking.
-
-You can replace the README with this:
-
-````markdown
 # ✈️ LLD TOPIC: FLIGHT AGGREGATION SYSTEM
 
 ### (Skyscanner, Google Flights, Kayak, Momondo, Expedia, Wego, Cleartrip, MakeMyTrip, ixigo, EaseMyTrip)

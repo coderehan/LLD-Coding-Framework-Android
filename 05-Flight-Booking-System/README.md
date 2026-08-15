@@ -208,11 +208,32 @@ class UpiPayment : PaymentStrategy {
 # 4️⃣ SERVICE CLASS
 
 ```kotlin
+/**
+ * Service responsible for handling the main flight booking business logic.
+ *
+ * It coordinates:
+ * - Flight data through FlightRepository
+ * - Seat availability and state
+ * - Payment through PaymentStrategy
+ * - Booking creation and cancellation
+ */
 class BookingService(
     private val flightRepo: FlightRepository,
     private val bookings: MutableMap<String, Booking> = mutableMapOf()
 ) {
 
+    /**
+     * Books a specific seat for a passenger.
+     *
+     * Booking flow:
+     * 1. Find the requested flight.
+     * 2. Find the requested seat.
+     * 3. Lock the seat to prevent another booking attempt.
+     * 4. Process payment.
+     * 5. If payment succeeds → BOOKED + CONFIRMED.
+     * 6. If payment fails → AVAILABLE + CANCELLED.
+     * 7. Create and store the booking.
+     */
     fun bookSeat(
         flightId: String,
         seatNo: String,
@@ -220,30 +241,44 @@ class BookingService(
         payment: PaymentStrategy
     ): Booking {
 
+        // Get the requested flight from the repository.
+        // If the flight doesn't exist, booking cannot continue.
         val flight = flightRepo.getById(flightId)
             ?: throw NoSuchElementException("Flight not found")
 
+        // Find the requested seat inside the selected flight.
+        // Booking cannot continue if the seat doesn't exist.
         val seat = flight.seats.find {
             it.seatNo == seatNo
         } ?: throw NoSuchElementException("Seat not found")
 
-        // LOCK the seat first so two people can't book the same seat at once.
-        // 'synchronized' makes this block thread-safe - good to mention in interview.
+        /**
+         * Temporarily lock the seat before processing payment.
+         *
+         * This prevents another thread/user from booking
+         * the same seat at the same time.
+         */
         synchronized(seat) {
 
+            // Only AVAILABLE seats can be booked.
             if (seat.status != SeatStatus.AVAILABLE) {
                 throw IllegalStateException(
                     "Seat already booked or locked"
                 )
             }
 
+            // Lock the seat while payment is being processed.
             seat.status = SeatStatus.LOCKED
         }
 
-        // Now try payment
+        // Payment is handled through PaymentStrategy,
+        // so BookingService doesn't depend on a specific payment method.
         val paymentSuccess = payment.pay(flight.price)
 
-        // Update seat + booking status based on payment result
+        // Payment result determines the final seat state.
+        //
+        // Successful payment → seat becomes BOOKED.
+        // Failed payment → seat becomes AVAILABLE again.
         seat.status =
             if (paymentSuccess) {
                 SeatStatus.BOOKED
@@ -251,6 +286,7 @@ class BookingService(
                 SeatStatus.AVAILABLE
             }
 
+        // Create a booking based on the payment result.
         val booking = Booking(
             id = "BK-${bookings.size + 1}",
             flight = flight,
@@ -264,20 +300,32 @@ class BookingService(
                 }
         )
 
+        // Store the booking so it can be retrieved or cancelled later.
         bookings[booking.id] = booking
 
         return booking
     }
 
+    /**
+     * Cancels an existing booking.
+     *
+     * Cancellation flow:
+     * 1. Find the booking.
+     * 2. Mark the booking as CANCELLED.
+     * 3. Release the seat so another passenger can book it.
+     */
     fun cancelBooking(bookingId: String) {
 
+        // Find the existing booking.
+        // Cancellation cannot continue if it doesn't exist.
         val booking = bookings[bookingId]
             ?: throw NoSuchElementException("Booking not found")
 
+        // Mark the booking as cancelled.
         booking.status = BookingStatus.CANCELLED
 
-        booking.seat.status =
-            SeatStatus.AVAILABLE // free up the seat again
+        // Release the seat and make it available for future bookings.
+        booking.seat.status = SeatStatus.AVAILABLE
     }
 }
 ```

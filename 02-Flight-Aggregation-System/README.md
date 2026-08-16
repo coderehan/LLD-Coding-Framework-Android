@@ -26,6 +26,34 @@ We use the Repository / Data Source pattern per source, and a Strategy pattern t
 
 ---
 
+# Rough Diagram
+    Main.kt
+       │
+       ▼
+    FlightAggregationService.kt
+       │
+       ├───────────────────────────────┐
+       │                               │
+       ▼                               ▼
+    FlightDataSource.kt          RankingStrategy.kt
+       │                               │
+       ├──────────────┐                ├──────────────┐
+       ▼              ▼                ▼              ▼
+    AirlineA       AirlineB      CheapestFirst    FastestFirst
+    Source         Source          Strategy          Strategy
+       │              │
+       └──────┬───────┘
+          ▼
+       Flight Data Sources
+          │
+          ▼
+    FlightAggregationService
+          │
+          ▼
+       Aggregated + Ranked
+            Flight List
+---
+
 ## 1️⃣ ENUMS + DATA CLASSES
 
 > Data class represents a flight returned by any airline source.

@@ -886,85 +886,75 @@ Set prevents duplicates
 It demonstrates how all components communicate.
 
 ```kotlin
+package com.coderpad.app
+
+import com.coderpad.app.model.User
+import com.coderpad.app.repository.InMemoryPropertyRepository
+import com.coderpad.app.service.PropertyListingService
+import com.coderpad.app.strategy.PriceRangeFilterStrategy
+import com.coderpad.app.strategy.PriceSortStrategy
+import com.coderpad.app.strategy.RoomFilterStrategy
+import com.coderpad.app.strategy.RoomSortStrategy
+
 fun main() {
 
-    // =================================================
-    // 1️⃣ CREATE REPOSITORY
-    // =================================================
+    // ---------------------------------------------------------
+    // SETUP
+    // ---------------------------------------------------------
 
-    val repository =
-        InMemoryPropertyRepository()
+    val repository = InMemoryPropertyRepository()
+    val service = PropertyListingService(repository)
 
-
-    // =================================================
-    // 2️⃣ CREATE SERVICE
-    // =================================================
-
-    // Repository is injected into the Service.
-    val service =
-        PropertyListingService(repository)
-
-
-    // =================================================
-    // 3️⃣ CREATE USERS
-    // =================================================
-
-    val rehan =
-        User(
-            id = "U1",
-            name = "Rehan"
-        )
-
-    val ali =
-        User(
-            id = "U2",
-            name = "Ali"
-        )
-
-
-    // =================================================
-    // 4️⃣ LIST PROPERTIES
-    // =================================================
-
-    val studio =
-        service.listProperty(
-            owner = rehan,
-            title = "Cozy Studio",
-            city = "Bengaluru",
-            price = 1500000.0,
-            rooms = 1
-        )
-
-    val apartment =
-        service.listProperty(
-            owner = ali,
-            title = "Modern Apartment",
-            city = "Bengaluru",
-            price = 3500000.0,
-            rooms = 2
-        )
-
-    val villa =
-        service.listProperty(
-            owner = rehan,
-            title = "Luxury Villa",
-            city = "Bengaluru",
-            price = 8000000.0,
-            rooms = 4
-        )
-
-    service.listProperty(
-        owner = ali,
-        title = "Chennai Home",
-        city = "Chennai",
-        price = 4500000.0,
-        rooms = 3
+    // Host / Property Owners
+    val rehan = User(
+        id = "USER1",
+        name = "REHAN"
     )
 
+    val farhan = User(
+        id = "USER2",
+        name = "FARHAN"
+    )
 
-    // =================================================
-    // 5️⃣ SEARCH PROPERTIES
-    // =================================================
+    // ---------------------------------------------------------
+    // 1. HOST LISTS PROPERTIES
+    // ---------------------------------------------------------
+
+    val villa = service.listProperty(
+        owner = rehan,
+        title = "VILLA - BLR",
+        city = "BENGALURU",
+        price = 50_000_000.0,
+        rooms = 15
+    )
+
+    service.listProperty(
+        owner = rehan,
+        title = "VILLA - HYD",
+        city = "HYDERABAD",
+        price = 70_000_000.0,
+        rooms = 20
+    )
+
+    val apartment = service.listProperty(
+        owner = rehan,
+        title = "APARTMENT - BLR",
+        city = "BENGALURU",
+        price = 3_000_000.0,
+        rooms = 2
+    )
+
+    val studio = service.listProperty(
+        owner = farhan,
+        title = "STUDIO",
+        city = "BENGALURU",
+        price = 10_000.0,
+        rooms = 1
+    )
+
+    // ---------------------------------------------------------
+    // 2. SEARCH PROPERTIES BY CITY
+    // ---------------------------------------------------------
 
     println("🏠 Properties in Bengaluru")
 
@@ -979,10 +969,9 @@ fun main() {
         )
     }
 
-
-    // =================================================
-    // 6️⃣ FILTER BY PRICE RANGE
-    // =================================================
+    // ---------------------------------------------------------
+    // 3. FILTER BY PRICE RANGE
+    // ---------------------------------------------------------
 
     println(
         "\n💰 Properties between ₹20L and ₹50L"
@@ -990,12 +979,10 @@ fun main() {
 
     service.searchProperties(
         city = "Bengaluru",
-
-        filterStrategy =
-            PriceRangeFilterStrategy(
-                minPrice = 2_000_000.0,
-                maxPrice = 5_000_000.0
-            )
+        filterStrategy = PriceRangeFilterStrategy(
+            minPrice = 2_000_000.0,
+            maxPrice = 5_000_000.0
+        )
     ).forEach { property ->
 
         println(
@@ -1004,22 +991,19 @@ fun main() {
         )
     }
 
-
-    // =================================================
-    // 7️⃣ FILTER BY NUMBER OF ROOMS
-    // =================================================
+    // ---------------------------------------------------------
+    // 4. FILTER BY NUMBER OF ROOMS
+    // ---------------------------------------------------------
 
     println(
-        "\n🚪 Properties with 2 rooms"
+        "\n🛏️ Properties with 2 rooms"
     )
 
     service.searchProperties(
         city = "Bengaluru",
-
-        filterStrategy =
-            RoomFilterStrategy(
-                requiredRooms = 2
-            )
+        filterStrategy = RoomFilterStrategy(
+            requiredRooms = 2
+        )
     ).forEach { property ->
 
         println(
@@ -1028,10 +1012,9 @@ fun main() {
         )
     }
 
-
-    // =================================================
-    // 8️⃣ SORT BY PRICE
-    // =================================================
+    // ---------------------------------------------------------
+    // 5. SORT BY PRICE
+    // ---------------------------------------------------------
 
     println(
         "\n💵 Bengaluru properties sorted by price"
@@ -1039,9 +1022,7 @@ fun main() {
 
     service.searchProperties(
         city = "Bengaluru",
-
-        sortStrategy =
-            PriceSortStrategy()
+        sortStrategy = PriceSortStrategy()
     ).forEach { property ->
 
         println(
@@ -1050,20 +1031,17 @@ fun main() {
         )
     }
 
-
-    // =================================================
-    // 9️⃣ SORT BY ROOMS
-    // =================================================
+    // ---------------------------------------------------------
+    // 6. SORT BY NUMBER OF ROOMS
+    // ---------------------------------------------------------
 
     println(
-        "\n🚪 Bengaluru properties sorted by rooms"
+        "\n🛏️ Bengaluru properties sorted by rooms"
     )
 
     service.searchProperties(
         city = "Bengaluru",
-
-        sortStrategy =
-            RoomSortStrategy()
+        sortStrategy = RoomSortStrategy()
     ).forEach { property ->
 
         println(
@@ -1072,26 +1050,26 @@ fun main() {
         )
     }
 
-
-    // =================================================
-    // 🔟 SHORTLIST PROPERTY
-    // =================================================
+    // ---------------------------------------------------------
+    // 7. SHORTLIST / BOOKMARK PROPERTY
+    // ---------------------------------------------------------
 
     println(
         "\n⭐ Shortlisting property"
     )
 
+    // Farhan is a customer in this example.
+    // He bookmarks the studio so he can view it later.
     service.shortlistProperty(
-        userId = ali.id,
+        userId = farhan.id,
         propertyId = studio.id
     )
 
-    val shortlisted =
-        service.getShortlistedProperties(
-            userId = ali.id
-        )
+    val shortlisted = service.getShortlistedProperties(
+        userId = farhan.id
+    )
 
-    println("Ali's shortlist:")
+    println("Farhan's shortlist:")
 
     shortlisted.forEach { property ->
 
@@ -1100,13 +1078,12 @@ fun main() {
         )
     }
 
-
-    // =================================================
-    // 1️⃣1️⃣ MARK PROPERTY AS SOLD
-    // =================================================
+    // ---------------------------------------------------------
+    // 8. MARK PROPERTY AS SOLD
+    // ---------------------------------------------------------
 
     println(
-        "\n🔴 Marking property as SOLD"
+        "\n🏷️ Marking property as SOLD"
     )
 
     service.markPropertyAsSold(
@@ -1116,26 +1093,6 @@ fun main() {
     println(
         "  • ${apartment.title} → SOLD"
     )
-
-
-    // =================================================
-    // 1️⃣2️⃣ SEARCH AGAIN
-    // =================================================
-
-    println(
-        "\n🔎 Available Bengaluru properties after sale"
-    )
-
-    service.searchProperties(
-        city = "Bengaluru"
-    ).forEach { property ->
-
-        println(
-            "  • ${property.title} | " +
-            "₹${property.price} | " +
-            "${property.rooms} rooms"
-        )
-    }
 }
 ```
 

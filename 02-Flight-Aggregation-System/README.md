@@ -136,10 +136,10 @@ class AirlineASource : FlightDataSource {
         // Simulate fetching flight data from Airline A's API.
         return listOf(
             Flight(
-                "AA101",
-                "Airline A",
-                from,
-                to,
+                flightNumber = "AA101",
+                airline = "Airline A",
+                from = from,
+                to = to,
                 price = 4500.0,
                 durationMinutes = 120
             )
@@ -169,10 +169,10 @@ class AirlineBSource : FlightDataSource {
         // Simulate fetching flight data from Airline B's API.
         return listOf(
             Flight(
-                "BB202",
-                "Airline B",
-                from,
-                to,
+                flightNumber = "BB202",
+                airline = "Airline B",
+                from = from,
+                to = to,
                 price = 3900.0,
                 durationMinutes = 150
             )
@@ -215,13 +215,14 @@ interface RankingStrategy {
  * Ranks flights from the lowest price
  * to the highest price.
  */
-class CheapestFirstStrategy : RankingStrategy {
-
-    override fun rank(
-        flights: List<Flight>
-    ) = flights.sortedBy {
-        it.price
+class CheapestFirstStrategy: RankingStrategy{
+  override fun rank(
+    flights: List<Flight>
+  ): List<Flight>{
+    return flights.sortedBy{
+      it.price
     }
+  }
 }
 ```
 
@@ -232,13 +233,14 @@ class CheapestFirstStrategy : RankingStrategy {
  * Ranks flights from the shortest duration
  * to the longest duration.
  */
-class FastestFirstStrategy : RankingStrategy {
-
-    override fun rank(
-        flights: List<Flight>
-    ) = flights.sortedBy {
-        it.durationMinutes
+class FastestFirstStrategy: RankingStrategy{
+  override fun rank(
+    flights: List<Flight>
+  ): List<Flight>{
+    return flights.sortedBy{
+      it.durationMinutes
     }
+  }
 }
 ```
 

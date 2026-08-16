@@ -36,30 +36,8 @@ The system should support the following operations.
 
 # 🧠 Real-Life Understanding
 
-Imagine a user wants to list a property for sale.
-
+So before coding, think:
 ```text
-User
-  │
-  │ lists property
-  ▼
-Property Listing
-  │
-  │
-  ├── Search properties
-  │
-  ├── Filter by price
-  │
-  ├── Filter by rooms
-  │
-  ├── Sort by price
-  │
-  ├── Sort by rooms
-  │
-  ├── ⭐ Shortlist
-  │
-  └── ⭐ Mark as Sold
-
 
              PROPERTY LISTING PLATFORM
                        │

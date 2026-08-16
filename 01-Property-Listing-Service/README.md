@@ -285,22 +285,19 @@ data class Shortlist(
     val propertyIds: MutableSet<String> = mutableSetOf()
 )
 ```
-
-### Why `Set`?
-
-Because the same property should not be added twice.
+Think of Shortlist = Bookmark / Save for later.
 
 ```text
-User
-  │
-  ▼
-Shortlist
-  │
-  ├── Property A
-  ├── Property B
-  └── Property C
+User searches properties
+        ↓
+Likes "Cozy Studio"
+        ↓
+⭐ Shortlist / Bookmark
+        ↓
+Property saved to user's shortlist
+        ↓
+User can quickly view it later
 ```
-
 ---
 
 # 2️⃣ REPOSITORY — Where Is The Data?

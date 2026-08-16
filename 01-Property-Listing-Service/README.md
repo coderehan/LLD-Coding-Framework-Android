@@ -714,7 +714,7 @@ class PropertyListingService(
     ) {
 
         val property =
-            propertyRepository.getProperty(propertyId)
+            propertyRepository.getPropertyById(propertyId)
                 ?: throw IllegalArgumentException(
                     "Property not found"
                 )
@@ -737,7 +737,7 @@ class PropertyListingService(
     ) {
 
         // Make sure property exists.
-        propertyRepository.getProperty(propertyId)
+        propertyRepository.getPropertyById(propertyId)
             ?: throw IllegalArgumentException(
                 "Property not found"
             )

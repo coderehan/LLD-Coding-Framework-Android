@@ -59,6 +59,24 @@ Property Listing
   ├── ⭐ Shortlist
   │
   └── ⭐ Mark as Sold
+
+
+             PROPERTY LISTING PLATFORM
+                       │
+              ┌────────┴────────┐
+              │                 │
+              ▼                 ▼
+       🏠 HOST / OWNER      👤 CUSTOMER
+              │                 │
+              │                 │
+        Manage properties    Discover properties
+              │                 │
+        ┌─────┼─────┐       ┌───┼─────────────┐
+        ▼     ▼     ▼       ▼   ▼   ▼   ▼     ▼
+       Add  Update Sold   Search Filter Sort View
+                                      │
+                                      ▼
+                                  Shortlist
 ```
 
 The important thing to understand is:

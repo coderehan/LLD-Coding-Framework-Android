@@ -56,11 +56,6 @@ So before coding, think:
                                       ▼
                                   Shortlist
 ```
-
-The important thing to understand is:
-
-> **Most operations are performed on the same collection of Property objects.**
-
 ---
 
 # 🔄 System Communication Flow

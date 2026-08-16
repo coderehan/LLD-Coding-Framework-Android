@@ -1,4 +1,75 @@
-# 🔄 SYSTEM COMMUNICATION FLOW
+# 🏠 LLD — Property Listing Service
+
+> **Design and implement a Property Listing Service using Kotlin and the DRSFSM LLD framework.**
+
+A Property Listing Service is similar to features found in applications such as:
+
+- 🏠 Airbnb
+- 🏡 Zillow
+- 🏘️ Realtor
+- 🏢 Booking.com
+- 🌍 Real-estate/property marketplaces
+
+The system allows users to **list properties, search properties, filter results, sort results, shortlist properties, and mark properties as sold.**
+
+---
+
+# 🎯 Functional Requirements
+
+The system should support the following operations.
+
+## ✅ Core Requirements
+
+1. **User can list a property**
+2. **Search properties**
+3. **Search properties by price range**
+4. **Search properties by number of rooms**
+5. **Sort properties by price**
+6. **Sort properties by number of rooms**
+
+## ⭐ Bonus Requirements
+
+7. **Mark property as Sold**
+8. **Shortlist a property**
+
+---
+
+# 🧠 Real-Life Understanding
+
+Imagine a user wants to list a property for sale.
+
+```text
+User
+  │
+  │ lists property
+  ▼
+Property Listing
+  │
+  │
+  ├── Search properties
+  │
+  ├── Filter by price
+  │
+  ├── Filter by rooms
+  │
+  ├── Sort by price
+  │
+  ├── Sort by rooms
+  │
+  ├── ⭐ Shortlist
+  │
+  └── ⭐ Mark as Sold
+```
+
+The important thing to understand is:
+
+> **Most operations are performed on the same collection of Property objects.**
+
+---
+
+# 🔄 System Communication Flow
+
+This is the **rough diagram to remember during the interview**.
 
 ```text
                          ┌──────────────┐
@@ -7,152 +78,163 @@
                          └──────┬───────┘
                                 │
                                 ▼
-                    ┌─────────────────────┐
-                    │  PropertyListing    │
-                    │      Service        │
-                    └──────┬────────┬─────┘
-                           │        │
-                    calls  │        │  calls
-                           │        │
-              ┌────────────┘        └──────────────┐
-              ▼                                    ▼
-    ┌────────────────────┐              ┌────────────────────┐
-    │ PropertyRepository │              │ PropertyStrategy   │
-    │    (interface)     │              │    (interface)     │
-    └─────────┬──────────┘              └──────────┬─────────┘
-              │                                    │
-              │ implemented by                    │ implemented by
-              ▼                                    ▼
-    ┌────────────────────────┐       ┌─────────────┬──────────────┐
-    │ InMemoryPropertyRepo   │       │   Filter    │    Sort      │
-    └───────────┬────────────┘       │ Strategies  │  Strategies  │
-                │                    └─────────────┴──────────────┘
-                │
-                │ stores / retrieves
-                ▼
-        ┌──────────────────┐
-        │  Domain Models   │
-        │                  │
-        │  User            │
-        │  Property        │
-        │  Status          │
-        └──────────────────┘
+                  ┌─────────────────────────┐
+                  │ PropertyListingService  │
+                  │                         │
+                  │  Business Logic ⭐      │
+                  └───────┬─────────┬───────┘
+                          │         │
+                    calls │         │ calls
+                          │         │
+              ┌───────────┘         └───────────────┐
+              ▼                                     ▼
+   ┌──────────────────────┐              ┌──────────────────────┐
+   │ PropertyRepository   │              │  Filter / Sort       │
+   │     Interface        │              │     Strategies       │
+   └──────────┬───────────┘              └──────────┬───────────┘
+              │                                     │
+              │ implemented by                      │
+              ▼                                     │
+   ┌──────────────────────────┐                     │
+   │ InMemoryPropertyRepo     │                     │
+   └────────────┬─────────────┘                     │
+                │                                   │
+                │ stores / retrieves                │
+                ▼                                   ▼
+        ┌────────────────────────────────────────────────┐
+        │                 Domain Models                  │
+        │                                                │
+        │        User   •   Property   •   Status       │
+        └────────────────────────────────────────────────┘
+```
 
+### 🧠 Remember
 
----
+```text
+App
+ ↓
+Service
+ ├──→ Repository
+ │      ↓
+ │   InMemoryRepository
+ │
+ └──→ Filter / Sort Strategies
 
-🎯 REQUIREMENTS
-
-The system should support:
-
-Core Requirements
-
-User can list a property
-
-Search properties
-
-Search by price range
-
-Search by number of rooms
-
-Sort by number of rooms
-
-Sort by price
-
-
-Bonus Requirements
-
-Mark property as Sold
-
-Shortlist property
-
-
+Everything works with Domain Models.
+```
 
 ---
 
-🧠 REAL-WORLD STORY
+# 🧩 DRSFSM Framework
 
-Imagine a user wants to sell/rent a property.
+We will follow the same framework used throughout this LLD repository.
 
-The user can:
+| Step | Component | Responsibility |
+|---|---|---|
+| 1️⃣ | **Domain** | Define the nouns/entities |
+| 2️⃣ | **Repository** | Store and retrieve data |
+| 3️⃣ | **Strategy** | Handle changing filter/sort behaviour |
+| 4️⃣ | **Factory** | Create objects when object creation becomes complex |
+| 5️⃣ | **Service** | Contains business logic |
+| 6️⃣ | **Main** | Demonstrates the complete flow |
 
-List Property
-     ↓
-Search Properties
-     ↓
-Filter by Price / Rooms
-     ↓
-Sort Results
-     ↓
-Shortlist Property
-     ↓
-Mark Property as Sold
+### For this problem
 
-The important thing is that most operations work on the same collection of Property objects.
+```text
+Domain
+   ↓
+Repository
+   ↓
+Strategy
+   ↓
+Service ⭐
+   ↓
+Main
+```
 
-
----
-
-🧩 FRAMEWORK USED
-
-Step	Component	Purpose
-
-1	Domain Models	The "nouns" of the system
-2	Repository	Stores and retrieves properties
-3	Strategy	Handles changing filter/sort behaviour
-4	Service	Contains business logic
-5	main()	Demonstrates the complete flow
-
-
+> **Factory is not necessary here because object creation is simple.**
 
 ---
 
-1️⃣ DOMAIN MODELS
+# 1️⃣ DOMAIN — What Things Exist?
 
-Ask:
+Before writing code, ask:
 
-> "What things exist in this system?"
+> **"What are the nouns involved in this system?"**
 
+The main nouns are:
 
-
-Important nouns:
-
+```text
 User
 Property
-Shortlist
 PropertyStatus
-
-
----
-
-Property Status
-
-A property can have different states.
-
-enum class PropertyStatus {
-    AVAILABLE,
-    SOLD
-}
-
+Shortlist
+```
 
 ---
 
-User
+## 👤 User
 
 A user can list properties and shortlist properties.
 
+```kotlin
 data class User(
     val id: String,
     val name: String
 )
+```
 
+### Example
+
+```text
+User
+ ├── id = U1
+ └── name = Rehan
+```
 
 ---
 
-Property
+# 🏠 Property Status
 
-Represents one property listed by a user.
+A property can be available or sold.
 
+```kotlin
+enum class PropertyStatus {
+    AVAILABLE,
+    SOLD
+}
+```
+
+### Why use an enum?
+
+Instead of:
+
+```kotlin
+status = "available"
+```
+
+or:
+
+```kotlin
+status = "sold"
+```
+
+we use a controlled set of values:
+
+```kotlin
+PropertyStatus.AVAILABLE
+PropertyStatus.SOLD
+```
+
+This avoids invalid status values.
+
+---
+
+# 🏠 Property
+
+This represents one property listed by a user.
+
+```kotlin
 data class Property(
     val id: String,
     val owner: User,
@@ -162,20 +244,22 @@ data class Property(
     val rooms: Int,
     var status: PropertyStatus = PropertyStatus.AVAILABLE
 )
+```
 
-Why these fields?
+### Why these fields?
 
+```text
 id
 → uniquely identifies the property
 
 owner
-→ who listed the property
+→ user who listed the property
 
 title
-→ property name/title
+→ property title
 
 city
-→ where the property is located
+→ property location
 
 price
 → property price
@@ -185,42 +269,108 @@ rooms
 
 status
 → AVAILABLE or SOLD
-
+```
 
 ---
 
-2️⃣ REPOSITORY
+# ⭐ Shortlist
+
+A user should be able to save a property for later.
+
+For a simple interview implementation, we can maintain:
+
+```kotlin
+data class Shortlist(
+    val userId: String,
+    val propertyIds: MutableSet<String> = mutableSetOf()
+)
+```
+
+### Why `Set`?
+
+Because the same property should not be added twice.
+
+```text
+User
+  │
+  ▼
+Shortlist
+  │
+  ├── Property A
+  ├── Property B
+  └── Property C
+```
+
+---
+
+# 2️⃣ REPOSITORY — Where Is The Data?
 
 Ask:
 
-> "Where does my property data come from?"
+> **"Where does the property data come from?"**
 
+In a real application:
 
+```text
+Database
+API
+Cache
+```
 
-For CoderPad, we don't need a real database.
+But in a CoderPad interview, we can keep it simple:
 
-We'll use an in-memory list.
+```text
+In-Memory List
+```
 
+---
+
+# 📦 PropertyRepository
+
+The Repository interface defines what the Service can do with property data.
+
+```kotlin
 interface PropertyRepository {
 
-    // Store a newly listed property.
+    // Save a newly listed property.
     fun addProperty(property: Property)
 
-    // Find one property using its ID.
+    // Find a property using its unique ID.
     fun getProperty(id: String): Property?
 
     // Return all properties.
     fun getAllProperties(): List<Property>
-}
 
+    // Update an existing property.
+    fun updateProperty(property: Property)
+}
+```
+
+### Repository responsibility
+
+```text
+Repository = DATA ACCESS
+
+✅ Save
+✅ Get
+✅ Update
+
+❌ Filter business rules
+❌ Sorting business rules
+❌ Shortlisting logic
+❌ Business decisions
+```
 
 ---
 
-🗄️ IN-MEMORY REPOSITORY
+# 🗄️ InMemoryPropertyRepository
 
+For the interview, our fake database is simply a mutable list.
+
+```kotlin
 class InMemoryPropertyRepository : PropertyRepository {
 
-    // Fake database for our interview.
+    // Acts as our temporary in-memory database.
     private val properties = mutableListOf<Property>()
 
     override fun addProperty(property: Property) {
@@ -228,187 +378,275 @@ class InMemoryPropertyRepository : PropertyRepository {
     }
 
     override fun getProperty(id: String): Property? {
-        return properties.find { it.id == id }
+        return properties.find {
+            it.id == id
+        }
     }
 
     override fun getAllProperties(): List<Property> {
+        // Return a copy so callers don't directly
+        // modify our internal list.
         return properties.toList()
     }
-}
 
-Important
+    override fun updateProperty(property: Property) {
+        val index = properties.indexOfFirst {
+            it.id == property.id
+        }
 
-The Repository only handles:
-
-STORE
-GET
-
-It should NOT contain business rules such as:
-
-Filter by price
-Sort by rooms
-Mark as sold
-
-Those belong in the Service.
-
-
----
-
-3️⃣ STRATEGY
-
-Ask:
-
-> "What behaviour can change?"
-
-
-
-Here we have different ways to process search results.
-
-Filter by price
-Filter by rooms
-
-Sort by price
-Sort by rooms
-
-Instead of putting every rule directly inside the Service, we can use Strategy.
-
-
----
-
-Strategy Interface
-
-interface PropertyStrategy {
-
-    // Takes the current property list
-    // and returns the processed result.
-    fun apply(properties: List<Property>): List<Property>
-}
-
-
----
-
-💰 PRICE RANGE FILTER
-
-class PriceRangeFilterStrategy(
-    private val minPrice: Double,
-    private val maxPrice: Double
-) : PropertyStrategy {
-
-    override fun apply(
-        properties: List<Property>
-    ): List<Property> {
-
-        // Keep only properties whose price
-        // falls inside the requested range.
-        return properties.filter {
-            it.price in minPrice..maxPrice &&
-            it.status == PropertyStatus.AVAILABLE
+        if (index != -1) {
+            properties[index] = property
         }
     }
 }
+```
+
+---
+
+# 3️⃣ STRATEGY — What Behaviour Can Change?
+
+This is where the problem becomes interesting.
+
+The user can search properties in different ways:
+
+```text
+FILTER
+ ├── Price Range
+ └── Number of Rooms
+
+SORT
+ ├── Price
+ └── Number of Rooms
+```
+
+Instead of writing every rule inside the Service, we can separate the changing behaviour.
+
+---
+
+# 🔍 Filter Strategy
+
+```kotlin
+interface PropertyFilterStrategy {
+
+    // Receives the current properties
+    // and returns only matching properties.
+    fun filter(
+        properties: List<Property>
+    ): List<Property>
+}
+```
+
+---
+
+# 💰 Price Range Filter
 
 Example:
 
-₹1,000,000 → ₹5,000,000
+```text
+Minimum Price = ₹20 Lakh
+Maximum Price = ₹50 Lakh
+```
 
-Only properties inside this range are returned.
+Only properties inside that range should be returned.
 
+```kotlin
+class PriceRangeFilterStrategy(
+    private val minPrice: Double,
+    private val maxPrice: Double
+) : PropertyFilterStrategy {
 
----
-
-🚪 ROOM FILTER
-
-class RoomFilterStrategy(
-    private val rooms: Int
-) : PropertyStrategy {
-
-    override fun apply(
+    override fun filter(
         properties: List<Property>
     ): List<Property> {
 
-        // Return properties having the
-        // requested number of rooms.
-        return properties.filter {
-            it.rooms == rooms &&
-            it.status == PropertyStatus.AVAILABLE
+        return properties.filter { property ->
+
+            property.price in minPrice..maxPrice &&
+                property.status == PropertyStatus.AVAILABLE
         }
     }
 }
+```
 
+### Real-life example
+
+```text
+Properties:
+
+₹15L
+₹25L  ← included
+₹35L  ← included
+₹60L
+
+Range = ₹20L - ₹50L
+
+Result:
+
+₹25L
+₹35L
+```
 
 ---
 
-💵 SORT BY PRICE
+# 🚪 Number Of Rooms Filter
 
-class PriceSortStrategy : PropertyStrategy {
+```kotlin
+class RoomFilterStrategy(
+    private val requiredRooms: Int
+) : PropertyFilterStrategy {
 
-    override fun apply(
+    override fun filter(
         properties: List<Property>
     ): List<Property> {
 
-        // Sort properties from cheapest to most expensive.
+        return properties.filter { property ->
+
+            property.rooms == requiredRooms &&
+                property.status == PropertyStatus.AVAILABLE
+        }
+    }
+}
+```
+
+### Example
+
+```text
+Required rooms = 2
+
+1 room ❌
+2 rooms ✅
+3 rooms ❌
+4 rooms ❌
+```
+
+---
+
+# ↕️ Sort Strategy
+
+Filtering and sorting are different behaviours.
+
+Therefore, we create a separate strategy.
+
+```kotlin
+interface PropertySortStrategy {
+
+    // Receives properties and returns
+    // them in the requested order.
+    fun sort(
+        properties: List<Property>
+    ): List<Property>
+}
+```
+
+---
+
+# 💵 Sort By Price
+
+```kotlin
+class PriceSortStrategy : PropertySortStrategy {
+
+    override fun sort(
+        properties: List<Property>
+    ): List<Property> {
+
+        // Cheapest property comes first.
         return properties.sortedBy {
             it.price
         }
     }
 }
-
+```
 
 ---
 
-🚪 SORT BY ROOMS
+# 🚪 Sort By Rooms
 
-class RoomSortStrategy : PropertyStrategy {
+```kotlin
+class RoomSortStrategy : PropertySortStrategy {
 
-    override fun apply(
+    override fun sort(
         properties: List<Property>
     ): List<Property> {
 
-        // Sort properties from fewer rooms
-        // to more rooms.
+        // Property with fewer rooms comes first.
         return properties.sortedBy {
             it.rooms
         }
     }
 }
-
+```
 
 ---
 
-4️⃣ SERVICE CLASS ⭐
+# 4️⃣ FACTORY
 
-This is the most important class.
+For this problem, a Factory is **optional**.
+
+We don't need one because creating a Property is straightforward:
+
+```kotlin
+Property(
+    id = ...,
+    owner = ...,
+    title = ...,
+    city = ...,
+    price = ...,
+    rooms = ...
+)
+```
+
+### Interview explanation
+
+> "I don't see enough object-creation complexity here to justify a Factory, so I'll keep creation inside the Service. If property creation later becomes dependent on property type or multiple construction rules, I can introduce a Factory."
+
+This is better than forcing a Factory just because the framework contains one.
+
+---
+
+# 5️⃣ SERVICE CLASS ⭐
+
+This is the **most important class**.
 
 Ask:
 
-> "What actions can the user perform?"
+> **"What actions can the user perform?"**
 
-
-
-Our Service needs to handle:
-
+```text
 1. List Property
 2. Search Properties
-3. Filter by Price
-4. Filter by Rooms
-5. Sort by Price
-6. Sort by Rooms
-7. Mark Property as Sold
+3. Filter By Price
+4. Filter By Rooms
+5. Sort By Price
+6. Sort By Rooms
+7. Mark Property As Sold
 8. Shortlist Property
+```
 
+All business decisions belong here.
 
 ---
 
-PropertyListingService
+# 🏠 PropertyListingService
 
+```kotlin
 class PropertyListingService(
-    private val repository: PropertyRepository
+    private val propertyRepository: PropertyRepository
 ) {
 
-    // ------------------------------------------------
-    // 1. LIST PROPERTY
-    // ------------------------------------------------
-    // A user creates a new property listing.
+    // Stores shortlisted property IDs per user.
+    // Example:
+    //
+    // U1 → [P1, P2]
+    // U2 → [P3]
+    //
+    private val shortlists =
+        mutableMapOf<String, MutableSet<String>>()
+
+
+    // =================================================
+    // 1️⃣ LIST PROPERTY
+    // =================================================
+
     fun listProperty(
         owner: User,
         title: String,
@@ -417,6 +655,7 @@ class PropertyListingService(
         rooms: Int
     ): Property {
 
+        // Create a new property.
         val property = Property(
             id = UUID.randomUUID().toString(),
             owner = owner,
@@ -426,32 +665,34 @@ class PropertyListingService(
             rooms = rooms
         )
 
-        // Save the newly created property.
-        repository.addProperty(property)
+        // Store the property through the repository.
+        propertyRepository.addProperty(property)
 
         return property
     }
 
 
-    // ------------------------------------------------
-    // 2. SEARCH PROPERTIES
-    // ------------------------------------------------
-    // Returns available properties.
+    // =================================================
+    // 2️⃣ SEARCH PROPERTIES
+    // =================================================
+
     fun searchProperties(
         city: String? = null,
-        strategy: PropertyStrategy? = null
+        filterStrategy: PropertyFilterStrategy? = null,
+        sortStrategy: PropertySortStrategy? = null
     ): List<Property> {
 
         // Start with all properties.
-        var properties = repository.getAllProperties()
+        var properties =
+            propertyRepository.getAllProperties()
 
-        // Only available properties should appear
+        // Sold properties should not appear
         // in normal search results.
         properties = properties.filter {
             it.status == PropertyStatus.AVAILABLE
         }
 
-        // Optional city filter.
+        // Apply city filter if provided.
         city?.let { requestedCity ->
 
             properties = properties.filter {
@@ -462,129 +703,223 @@ class PropertyListingService(
             }
         }
 
-        // Apply the requested filter/sort strategy.
-        return strategy?.apply(properties)
-            ?: properties
+        // Apply additional filter strategy.
+        filterStrategy?.let {
+            properties = it.filter(properties)
+        }
+
+        // Apply sorting strategy.
+        sortStrategy?.let {
+            properties = it.sort(properties)
+        }
+
+        return properties
     }
 
 
-    // ------------------------------------------------
-    // 3. MARK PROPERTY AS SOLD
-    // ------------------------------------------------
-    // Once sold, the property should no longer
-    // appear in normal search results.
-    fun markAsSold(propertyId: String) {
+    // =================================================
+    // 3️⃣ MARK PROPERTY AS SOLD
+    // =================================================
+
+    fun markPropertyAsSold(
+        propertyId: String
+    ) {
 
         val property =
-            repository.getProperty(propertyId)
-                ?: throw NoSuchElementException(
+            propertyRepository.getProperty(propertyId)
+                ?: throw IllegalArgumentException(
                     "Property not found"
                 )
 
+        // Change the property state.
         property.status = PropertyStatus.SOLD
+
+        // Save the updated property.
+        propertyRepository.updateProperty(property)
     }
 
 
-    // ------------------------------------------------
-    // 4. SHORTLIST PROPERTY
-    // ------------------------------------------------
-    // A user can save a property for later.
-    //
-    // For this interview implementation,
-    // we simply demonstrate the action.
+    // =================================================
+    // 4️⃣ SHORTLIST PROPERTY
+    // =================================================
+
     fun shortlistProperty(
         userId: String,
         propertyId: String
     ) {
 
-        val property =
-            repository.getProperty(propertyId)
-                ?: throw NoSuchElementException(
-                    "Property not found"
-                )
+        // Make sure property exists.
+        propertyRepository.getProperty(propertyId)
+            ?: throw IllegalArgumentException(
+                "Property not found"
+            )
 
-        println(
-            "User $userId shortlisted: ${property.title}"
-        )
+        // Create shortlist for the user
+        // if it doesn't already exist.
+        val shortlist =
+            shortlists.getOrPut(userId) {
+                mutableSetOf()
+            }
+
+        // Set automatically prevents duplicates.
+        shortlist.add(propertyId)
+    }
+
+
+    // =================================================
+    // 5️⃣ GET USER SHORTLIST
+    // =================================================
+
+    fun getShortlistedProperties(
+        userId: String
+    ): List<Property> {
+
+        val propertyIds =
+            shortlists[userId].orEmpty()
+
+        return propertyIds.mapNotNull { propertyId ->
+
+            propertyRepository.getProperty(propertyId)
+        }
     }
 }
-
+```
 
 ---
 
-🧠 SERVICE BUSINESS ACTIONS
+# 🧠 Service Business Logic
 
-Don't memorize the entire Service code.
+You don't need to memorize every line.
 
-Remember the actions:
+Remember the **actions**.
 
-LIST PROPERTY
-      ↓
+## LIST PROPERTY
+
+```text
+User
+ ↓
+Service
+ ↓
 Create Property
-      ↓
+ ↓
 Repository.addProperty()
-
-
-SEARCH
-      ↓
-Get All Properties
-      ↓
-Filter Available
-      ↓
-Optional City Filter
-      ↓
-Apply Strategy
-      ↓
-Return Results
-
-
-MARK SOLD
-      ↓
-Find Property
-      ↓
-Change Status → SOLD
-
-
-SHORTLIST
-      ↓
-Find Property
-      ↓
-Add to user's shortlist
-
-🔥 Memory Shortcut
-
-> LIST → SEARCH → FILTER → SORT → SOLD → SHORTLIST
-
-
-
+```
 
 ---
 
-5️⃣ MAIN FUNCTION
+## SEARCH
 
-main() demonstrates how all components communicate.
+```text
+Service
+ ↓
+Repository.getAllProperties()
+ ↓
+Remove SOLD properties
+ ↓
+City filter
+ ↓
+Price / Room filter
+ ↓
+Price / Room sort
+ ↓
+Return results
+```
 
+---
+
+## MARK SOLD
+
+```text
+Service
+ ↓
+Find Property
+ ↓
+Change status
+ ↓
+AVAILABLE → SOLD
+ ↓
+Repository.updateProperty()
+```
+
+---
+
+## SHORTLIST
+
+```text
+Service
+ ↓
+Find Property
+ ↓
+Find user's shortlist
+ ↓
+Add property ID
+ ↓
+Set prevents duplicates
+```
+
+---
+
+# 🔥 BUSINESS ACTION MEMORY
+
+```text
+┌───────────────────────────────────────┐
+│       PROPERTY LISTING SERVICE        │
+├───────────────────────────────────────┤
+│                                       │
+│  🏠 LIST PROPERTY                     │
+│           ↓                           │
+│  🔎 SEARCH PROPERTIES                 │
+│           ↓                           │
+│  💰 FILTER BY PRICE                   │
+│           ↓                           │
+│  🚪 FILTER BY ROOMS                   │
+│           ↓                           │
+│  💵 SORT BY PRICE                     │
+│           ↓                           │
+│  🚪 SORT BY ROOMS                     │
+│           ↓                           │
+│  ⭐ SHORTLIST PROPERTY                │
+│           ↓                           │
+│  🔴 MARK PROPERTY AS SOLD             │
+│                                       │
+└───────────────────────────────────────┘
+```
+
+### 🧠 One-Line Memory Trick
+
+> **LIST → SEARCH → FILTER → SORT → SHORTLIST → SOLD**
+
+---
+
+# 6️⃣ MAIN FUNCTION
+
+`main()` acts as our small client application.
+
+It demonstrates how all components communicate.
+
+```kotlin
 fun main() {
 
-    // ---------------------------------------------
-    // Create Repository
-    // ---------------------------------------------
+    // =================================================
+    // 1️⃣ CREATE REPOSITORY
+    // =================================================
 
     val repository =
         InMemoryPropertyRepository()
 
 
-    // ---------------------------------------------
-    // Inject Repository into Service
-    // ---------------------------------------------
+    // =================================================
+    // 2️⃣ CREATE SERVICE
+    // =================================================
 
+    // Repository is injected into the Service.
     val service =
         PropertyListingService(repository)
 
 
-    // ---------------------------------------------
-    // Create Users
-    // ---------------------------------------------
+    // =================================================
+    // 3️⃣ CREATE USERS
+    // =================================================
 
     val rehan =
         User(
@@ -599,9 +934,9 @@ fun main() {
         )
 
 
-    // ---------------------------------------------
-    // LIST PROPERTIES
-    // ---------------------------------------------
+    // =================================================
+    // 4️⃣ LIST PROPERTIES
+    // =================================================
 
     val studio =
         service.listProperty(
@@ -630,225 +965,522 @@ fun main() {
             rooms = 4
         )
 
-    val chennaiHome =
-        service.listProperty(
-            owner = ali,
-            title = "Chennai Home",
-            city = "Chennai",
-            price = 4500000.0,
-            rooms = 3
-        )
+    service.listProperty(
+        owner = ali,
+        title = "Chennai Home",
+        city = "Chennai",
+        price = 4500000.0,
+        rooms = 3
+    )
 
 
-    // ---------------------------------------------
-    // SEARCH ALL BENGALURU PROPERTIES
-    // ---------------------------------------------
+    // =================================================
+    // 5️⃣ SEARCH PROPERTIES
+    // =================================================
 
-    println("🏠 Properties in Bengaluru:")
+    println("🏠 Properties in Bengaluru")
 
     service.searchProperties(
         city = "Bengaluru"
-    ).forEach {
+    ).forEach { property ->
 
         println(
-            " - ${it.title} | ₹${it.price} | ${it.rooms} rooms"
+            "  • ${property.title} | " +
+            "₹${property.price} | " +
+            "${property.rooms} rooms"
         )
     }
 
 
-    // ---------------------------------------------
-    // SEARCH BY PRICE RANGE
-    // ---------------------------------------------
+    // =================================================
+    // 6️⃣ FILTER BY PRICE RANGE
+    // =================================================
 
     println(
-        "\n💰 Properties between ₹2M and ₹5M:"
+        "\n💰 Properties between ₹20L and ₹50L"
     )
 
     service.searchProperties(
         city = "Bengaluru",
-        strategy = PriceRangeFilterStrategy(
-            minPrice = 2000000.0,
-            maxPrice = 5000000.0
-        )
-    ).forEach {
+
+        filterStrategy =
+            PriceRangeFilterStrategy(
+                minPrice = 2_000_000.0,
+                maxPrice = 5_000_000.0
+            )
+    ).forEach { property ->
 
         println(
-            " - ${it.title} | ₹${it.price}"
+            "  • ${property.title} | " +
+            "₹${property.price}"
         )
     }
 
 
-    // ---------------------------------------------
-    // SEARCH BY NUMBER OF ROOMS
-    // ---------------------------------------------
+    // =================================================
+    // 7️⃣ FILTER BY NUMBER OF ROOMS
+    // =================================================
 
     println(
-        "\n🚪 Properties with 2 rooms:"
+        "\n🚪 Properties with 2 rooms"
     )
 
     service.searchProperties(
         city = "Bengaluru",
-        strategy = RoomFilterStrategy(
-            rooms = 2
-        )
-    ).forEach {
+
+        filterStrategy =
+            RoomFilterStrategy(
+                requiredRooms = 2
+            )
+    ).forEach { property ->
 
         println(
-            " - ${it.title} | ${it.rooms} rooms"
+            "  • ${property.title} | " +
+            "${property.rooms} rooms"
         )
     }
 
 
-    // ---------------------------------------------
-    // SORT BY PRICE
-    // ---------------------------------------------
+    // =================================================
+    // 8️⃣ SORT BY PRICE
+    // =================================================
 
     println(
-        "\n💵 Bengaluru properties sorted by price:"
+        "\n💵 Bengaluru properties sorted by price"
     )
 
     service.searchProperties(
         city = "Bengaluru",
-        strategy = PriceSortStrategy()
-    ).forEach {
+
+        sortStrategy =
+            PriceSortStrategy()
+    ).forEach { property ->
 
         println(
-            " - ${it.title} | ₹${it.price}"
+            "  • ${property.title} | " +
+            "₹${property.price}"
         )
     }
 
 
-    // ---------------------------------------------
-    // SORT BY NUMBER OF ROOMS
-    // ---------------------------------------------
+    // =================================================
+    // 9️⃣ SORT BY ROOMS
+    // =================================================
 
     println(
-        "\n🚪 Bengaluru properties sorted by rooms:"
+        "\n🚪 Bengaluru properties sorted by rooms"
     )
 
     service.searchProperties(
         city = "Bengaluru",
-        strategy = RoomSortStrategy()
-    ).forEach {
+
+        sortStrategy =
+            RoomSortStrategy()
+    ).forEach { property ->
 
         println(
-            " - ${it.title} | ${it.rooms} rooms"
+            "  • ${property.title} | " +
+            "${property.rooms} rooms"
         )
     }
 
 
-    // ---------------------------------------------
-    // SHORTLIST PROPERTY
-    // ---------------------------------------------
+    // =================================================
+    // 🔟 SHORTLIST PROPERTY
+    // =================================================
 
-    println("\n⭐ Shortlist:")
+    println(
+        "\n⭐ Shortlisting property"
+    )
 
     service.shortlistProperty(
-        userId = "U2",
+        userId = ali.id,
         propertyId = studio.id
     )
 
+    val shortlisted =
+        service.getShortlistedProperties(
+            userId = ali.id
+        )
 
-    // ---------------------------------------------
-    // MARK PROPERTY AS SOLD
-    // ---------------------------------------------
+    println("Ali's shortlist:")
 
-    println("\n🔴 Marking property as SOLD:")
+    shortlisted.forEach { property ->
 
-    service.markAsSold(
+        println(
+            "  • ${property.title}"
+        )
+    }
+
+
+    // =================================================
+    // 1️⃣1️⃣ MARK PROPERTY AS SOLD
+    // =================================================
+
+    println(
+        "\n🔴 Marking property as SOLD"
+    )
+
+    service.markPropertyAsSold(
         propertyId = apartment.id
     )
 
     println(
-        " - ${apartment.title} is now SOLD"
+        "  • ${apartment.title} → SOLD"
     )
 
 
-    // ---------------------------------------------
-    // SEARCH AGAIN
-    // ---------------------------------------------
-    // Sold properties should no longer appear
-    // in normal search results.
+    // =================================================
+    // 1️⃣2️⃣ SEARCH AGAIN
+    // =================================================
 
     println(
-        "\n🔎 Available Bengaluru properties after sale:"
+        "\n🔎 Available Bengaluru properties after sale"
     )
 
     service.searchProperties(
         city = "Bengaluru"
-    ).forEach {
+    ).forEach { property ->
 
         println(
-            " - ${it.title} | ₹${it.price}"
+            "  • ${property.title} | " +
+            "₹${property.price} | " +
+            "${property.rooms} rooms"
         )
     }
 }
-
-
----
-
-🖥️ SAMPLE OUTPUT
-
-🏠 Properties in Bengaluru:
- - Cozy Studio | ₹1500000.0 | 1 rooms
- - Modern Apartment | ₹3500000.0 | 2 rooms
- - Luxury Villa | ₹8000000.0 | 4 rooms
-
-💰 Properties between ₹2M and ₹5M:
- - Modern Apartment | ₹3500000.0
-
-🚪 Properties with 2 rooms:
- - Modern Apartment | 2 rooms
-
-💵 Bengaluru properties sorted by price:
- - Cozy Studio | ₹1500000.0
- - Modern Apartment | ₹3500000.0
- - Luxury Villa | ₹8000000.0
-
-🚪 Bengaluru properties sorted by rooms:
- - Cozy Studio | 1 rooms
- - Modern Apartment | 2 rooms
- - Luxury Villa | 4 rooms
-
-⭐ Shortlist:
-User U2 shortlisted: Cozy Studio
-
-🔴 Marking property as SOLD:
- - Modern Apartment is now SOLD
-
-🔎 Available Bengaluru properties after sale:
- - Cozy Studio | ₹1500000.0
- - Luxury Villa | ₹8000000.0
-
+```
 
 ---
 
-🎯 COMPLETE LLD FLOW
+# 🖥️ Sample Output
 
-App.kt
-                           │
-                           ▼
-                 PropertyListingService
-                    │              │
-                    │              │
-                    ▼              ▼
-           PropertyRepository   PropertyStrategy
-                    │              │
-                    ▼               ┌─────┴───────────────┐
-          InMemoryRepository  │                     │
-                              ▼                     ▼
-                       Filter Strategies      Sort Strategies
-                              │                     │
-                       ┌──────┴──────┐       ┌──────┴──────┐
-                       ▼             ▼       ▼             ▼
-                    Price          Rooms   Price         Rooms
-                    Filter         Filter  Sort          Sort
-                             
-                    All components work
-                    with Domain Models
-                           │
-                           ▼
-                  User / Property / Status
+```text
+🏠 Properties in Bengaluru
 
+  • Cozy Studio | ₹1500000.0 | 1 rooms
+  • Modern Apartment | ₹3500000.0 | 2 rooms
+  • Luxury Villa | ₹8000000.0 | 4 rooms
+
+
+💰 Properties between ₹20L and ₹50L
+
+  • Modern Apartment | ₹3500000.0
+
+
+🚪 Properties with 2 rooms
+
+  • Modern Apartment | 2 rooms
+
+
+💵 Bengaluru properties sorted by price
+
+  • Cozy Studio | ₹1500000.0
+  • Modern Apartment | ₹3500000.0
+  • Luxury Villa | ₹8000000.0
+
+
+🚪 Bengaluru properties sorted by rooms
+
+  • Cozy Studio | 1 rooms
+  • Modern Apartment | 2 rooms
+  • Luxury Villa | 4 rooms
+
+
+⭐ Shortlisting property
+
+Ali's shortlist:
+
+  • Cozy Studio
+
+
+🔴 Marking property as SOLD
+
+  • Modern Apartment → SOLD
+
+
+🔎 Available Bengaluru properties after sale
+
+  • Cozy Studio | ₹1500000.0 | 1 rooms
+  • Luxury Villa | ₹8000000.0 | 4 rooms
+```
 
 ---
+
+# 🔗 Complete Communication Flow
+
+```text
+                         ┌──────────────┐
+                         │    App.kt    │
+                         │   main()     │
+                         └──────┬───────┘
+                                │
+                                ▼
+                 ┌──────────────────────────┐
+                 │ PropertyListingService   │
+                 │                          │
+                 │  listProperty()          │
+                 │  searchProperties()      │
+                 │  markPropertyAsSold()    │
+                 │  shortlistProperty()     │
+                 └───────┬───────────┬──────┘
+                         │           │
+                         │           │
+                         ▼           ▼
+             ┌────────────────┐   ┌────────────────────┐
+             │  Repository    │   │    Strategies      │
+             │   Interface    │   │                    │
+             └───────┬────────┘   │ Filter              │
+                     │            │  ├─ Price            │
+                     │            │  └─ Rooms            │
+                     ▼            │                    │
+          ┌────────────────────┐  │ Sort               │
+          │ InMemoryRepository │  │  ├─ Price           │
+          └──────────┬─────────┘  │  └─ Rooms           │
+                     │            └────────────────────┘
+                     │
+                     ▼
+          ┌────────────────────────┐
+          │     Domain Models      │
+          │                        │
+          │ User                   │
+          │ Property               │
+          │ PropertyStatus         │
+          │ Shortlist              │
+          └────────────────────────┘
+```
+
+---
+
+# 🎤 How To Explain This In The Interview
+
+If the interviewer asks:
+
+> **"Design a Property Listing Service."**
+
+Don't immediately start coding.
+
+Start with:
+
+### 1️⃣ Clarify Requirements
+
+```text
+"Let me first clarify the functional requirements."
+
+• Can users list properties?
+• What fields are required?
+• Can users search by price?
+• Can users search by number of rooms?
+• What sorting options do we need?
+• Should sold properties appear in search?
+• Can users shortlist properties?
+```
+
+---
+
+### 2️⃣ Identify Domain Models
+
+Say:
+
+> "The main nouns I see are User, Property, PropertyStatus and Shortlist."
+
+---
+
+### 3️⃣ Draw Communication Flow
+
+```text
+App
+ ↓
+Service
+ ├── Repository
+ └── Filter / Sort Strategies
+```
+
+---
+
+### 4️⃣ Start DRSFSM
+
+```text
+Domain
+   ↓
+Repository
+   ↓
+Strategy
+   ↓
+Factory (only if needed)
+   ↓
+Service
+   ↓
+main()
+```
+
+---
+
+### 5️⃣ Prioritize Core Features
+
+If the interviewer gives you **one hour**, don't panic when you see many requirements.
+
+Implement in this order:
+
+```text
+                    60 MINUTES
+                        │
+                        ▼
+              ┌──────────────────┐
+              │  Core First ⭐    │
+              └────────┬─────────┘
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+       LIST         SEARCH       FILTER
+                                   │
+                              ┌────┴────┐
+                              ▼         ▼
+                           PRICE      ROOMS
+                              │
+                              └────┬────┘
+                                   ▼
+                                  SORT
+                              ┌────┴────┐
+                              ▼         ▼
+                           PRICE      ROOMS
+
+                    Then if time remains:
+
+                         ⭐ SHORTLIST
+                         ⭐ SOLD
+```
+
+### 🧠 Senior-level statement
+
+> **"I'll first make the core listing and search flow work, including filtering and sorting. Once that is complete and tested, I'll use the remaining time to implement the bonus features."**
+
+This shows **prioritization**, not just coding.
+
+---
+
+# ⚡ Interview Memory Card
+
+Before coding, remember only this:
+
+```text
+┌─────────────────────────────────────────┐
+│       🏠 PROPERTY LISTING SERVICE       │
+├─────────────────────────────────────────┤
+│                                         │
+│ DOMAIN                                  │
+│ → User                                  │
+│ → Property                              │
+│ → Status                                │
+│ → Shortlist                             │
+│                                         │
+│ REPOSITORY                              │
+│ → Add                                   │
+│ → Get                                   │
+│ → Update                                │
+│                                         │
+│ STRATEGY                                │
+│ → Filter Price                          │
+│ → Filter Rooms                          │
+│ → Sort Price                            │
+│ → Sort Rooms                            │
+│                                         │
+│ SERVICE ⭐                              │
+│ → List                                  │
+│ → Search                                │
+│ → Mark Sold                             │
+│ → Shortlist                             │
+│                                         │
+│ MAIN                                    │
+│ → Demonstrate everything                │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+---
+
+# 🔥 Final Memory Trick
+
+Don't memorize the code.
+
+Memorize the **story**:
+
+```text
+                 PROPERTY
+
+                    ↓
+
+                  LIST
+                    ↓
+                 SEARCH
+                    ↓
+               ┌────┴────┐
+               ↓         ↓
+             FILTER     SORT
+               │         │
+          ┌────┴───┐ ┌───┴────┐
+          ↓        ↓ ↓        ↓
+        PRICE    ROOMS PRICE  ROOMS
+                    │
+                    ↓
+               ┌────┴────┐
+               ↓         ↓
+           SHORTLIST    SOLD
+```
+
+### 🧠 One sentence
+
+> **"A user lists a property, other users search it, filter it by price or rooms, sort the results, shortlist it, and eventually the property can be marked as sold."**
+
+If you can explain that story, identify the nouns, draw the flow, and implement the business actions using your DRSFSM framework, **you understand the LLD.**
+
+---
+
+# ✅ Interview Checklist
+
+Before moving to the next LLD, make sure you can do this **without looking at the README**:
+
+- [ ] Explain functional requirements
+- [ ] Identify domain models
+- [ ] Draw communication flow
+- [ ] Create Repository
+- [ ] Create Filter Strategy
+- [ ] Create Sort Strategy
+- [ ] Explain why Factory is not required
+- [ ] Implement `listProperty()`
+- [ ] Implement `searchProperties()`
+- [ ] Filter by price
+- [ ] Filter by rooms
+- [ ] Sort by price
+- [ ] Sort by rooms
+- [ ] Implement `markPropertyAsSold()`
+- [ ] Implement `shortlistProperty()`
+- [ ] Run `main()`
+- [ ] Explain code while writing
+- [ ] Complete the core flow within the interview time
+
+---
+
+# 🎯 CORE BUSINESS ACTIONS
+
+```text
+LIST
+  ↓
+SEARCH
+  ↓
+FILTER
+  ├── Price
+  └── Rooms
+  ↓
+SORT
+  ├── Price
+  └── Rooms
+  ↓
+SHORTLIST ⭐
+  ↓
+SOLD ⭐
+```
+
+> **Remember: Don't memorize the implementation. Remember the business actions.**
+
+> **LIST → SEARCH → FILTER → SORT → SHORTLIST → SOLD**

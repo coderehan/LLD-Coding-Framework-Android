@@ -767,7 +767,7 @@ class PropertyListingService(
 
         return propertyIds.mapNotNull { propertyId ->
 
-            propertyRepository.getProperty(propertyId)
+            propertyRepository.getPropertyById(propertyId)
         }
     }
 }
